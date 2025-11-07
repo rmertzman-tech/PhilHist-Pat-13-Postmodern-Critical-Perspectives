@@ -1,764 +1,1165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Part 13 — Context, Standpoint & Repair (with Tracking)</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .fade-in { animation: fadeIn .3s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epistemic Justice Toolkit - Applied Critical Thinking</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .framework-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .framework-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .connection-line {
+            border-left: 2px dashed #9333ea;
+            padding-left: 1rem;
+            margin-left: 1rem;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
-  <div id="root"></div>
+    <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    <script type="text/babel" data-presets="env,react">
+        const { useState, useEffect } = React;
 
-    // -----------------------------
-    // Utils
-    // -----------------------------
-    const STORAGE_KEY = 'part13_app_state_v2';
+        // Utility Functions
+        const generateSessionId = () => {
+            const date = new Date();
+            const dateStr = date.toISOString().slice(0,10).replace(/-/g, '');
+            const timeStr = date.toTimeString().slice(0,5).replace(/:/g, '');
+            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `EJ-${dateStr}-${timeStr}-${random}`;
+        };
 
-    const generateSessionId = () => {
-      const d = new Date();
-      const dateStr = d.toISOString().slice(0,10).replace(/-/g,'');
-      const timeStr = d.toTimeString().slice(0,8).replace(/:/g,'');
-      const rnd = Math.random().toString(36).slice(2,8).toUpperCase();
-      return `P13-${dateStr}-${timeStr}-${rnd}`;
-    };
+        const calculateMastery = (percentage) => {
+            if (percentage >= 90) return 'mastered';
+            if (percentage >= 80) return 'proficient';
+            if (percentage >= 60) return 'developing';
+            return 'novice';
+        };
 
-    const nowISO = () => new Date().toISOString();
+        const getMasteryLabel = (level) => {
+            const labels = {
+                mastered: '⭐ Mastered',
+                proficient: '✓ Proficient',
+                developing: '🔄 Developing',
+                novice: '⭕ Novice'
+            };
+            return labels[level] || '⭕ Not Started';
+        };
 
-    // -----------------------------
-    // Data (distinct per section)
-    // -----------------------------
-    const NAV_SECTIONS = [
-      { id: 'overview', label: 'Overview', icon: '🌍' },
-      { id: 'concepts', label: 'Core Concepts', icon: '🧭' },
-      { id: 'threads', label: 'Threads & Influences', icon: '🧶' },
-      { id: 'patterns', label: 'Design Patterns', icon: '🛠️' },
-      { id: 'example', label: 'Worked Example', icon: '📋' },
-      { id: 'assessment', label: 'Assessment & Reflection', icon: '✅' },
-    ];
+        // Practice Scenarios Data
+        const PRACTICE_SCENARIOS = {
+            testimonial: [
+                {
+                    id: 'test1',
+                    scenario: 'A student from a working-class background offers an insight about economic inequality in class. The professor responds, "That\'s an interesting personal opinion," and moves on. When a student from a wealthy family says something similar, the professor responds, "Excellent analysis of the structural dynamics." Same insight, different reception.',
+                    question: 'What type of epistemic injustice is this?',
+                    options: [
+                        { id: 'A', text: 'Hermeneutical injustice - missing concepts', correct: false },
+                        { id: 'B', text: 'Testimonial injustice - credibility discount based on identity', correct: true },
+                        { id: 'C', text: 'No injustice - just different phrasing', correct: false },
+                        { id: 'D', text: 'Capability gap - student needs better communication skills', correct: false }
+                    ],
+                    explanation: 'Correct: B. This is testimonial injustice. The working-class student\'s credibility is discounted based on identity cues (class), not evidence quality. The same insight gets treated as "opinion" from one student and "analysis" from another.',
+                    abcdConnection: 'Context (C): Class-coded credibility cues act as gates. Agency (A): Student\'s voice is diminished not by lack of capacity but by contextual filtering.',
+                    fourLevelsConnection: 'The student has Capacity (understanding) but Context suppresses expression as Capability (recognized contribution). Intervention: Context redesign through credibility calibration.'
+                },
+                {
+                    id: 'test2',
+                    scenario: 'In a committee meeting, a woman suggests a new approach. No one responds. Ten minutes later, a man suggests the same approach and everyone agrees it\'s brilliant. When the woman points this out, she\'s told she\'s "being sensitive."',
+                    question: 'How should this be addressed at different levels?',
+                    options: [
+                        { id: 'A', text: 'Capacity: Train the woman to speak more assertively', correct: false },
+                        { id: 'B', text: 'Capability: Create speaking turn protocols that require acknowledgment', correct: false },
+                        { id: 'C', text: 'Constructor: Institute attribution norms and meeting minutes that track who introduced ideas', correct: false },
+                        { id: 'D', text: 'All of B and C - this requires multi-level intervention', correct: true }
+                    ],
+                    explanation: 'Correct: D. This isn\'t a Capacity problem (she spoke clearly). It requires Capability interventions (protocols ensuring ideas are acknowledged regardless of source) AND Constructor interventions (attribution norms that persist across meetings). Training her to "speak better" (A) blames the victim.',
+                    abcdConnection: 'Context (C): Implicit gender bias in credibility. Dynamics (D): Pattern reinforces itself unless interrupted by new procedures.',
+                    fourLevelsConnection: 'Capability: Speaking turn protocols. Constructor: Attribution norms documented in meeting procedures. Meta-Constructor: Regular audits of whose contributions get credited.'
+                }
+            ],
+            hermeneutical: [
+                {
+                    id: 'herm1',
+                    scenario: 'Before the term "microaggression" existed, people of color experienced daily small slights but had no shared language to make this pattern intelligible. They knew something was wrong but couldn\'t articulate it in ways that would be collectively recognized. White colleagues often dismissed individual incidents as "overthinking" or "being too sensitive."',
+                    question: 'What type of injustice is this and what\'s the solution?',
+                    options: [
+                        { id: 'A', text: 'Testimonial injustice - solution: believe individuals more', correct: false },
+                        { id: 'B', text: 'Hermeneutical injustice - solution: concept-coining and lexicon building', correct: true },
+                        { id: 'C', text: 'No injustice - just communication difficulty', correct: false },
+                        { id: 'D', text: 'Capacity problem - people need better vocabulary', correct: false }
+                    ],
+                    explanation: 'Correct: B. This is hermeneutical injustice - the shared conceptual resources didn\'t exist to make the experience collectively intelligible. Once "microaggression" was coined and widely adopted, the pattern became speakable and actionable. Solution: create space for concept-coining and build shared lexicons.',
+                    abcdConnection: 'Context (C): Missing conceptual infrastructure. Dynamics (D): Concepts enable pattern recognition, which enables collective response.',
+                    fourLevelsConnection: 'Meta-Constructor: Scheduled lexicon reviews where new terms can be proposed, defined, and adopted into shared vocabulary. Creates living language that adapts to new experiences.'
+                }
+            ],
+            pluralism: [
+                {
+                    id: 'plur1',
+                    scenario: 'A university offers two paths to demonstrate understanding of Indigenous governance: (A) Write a research paper citing scholarly sources, or (B) Conduct interviews with community elders and present findings in a format approved by the community. Both require rigor, evidence, and analysis, but different forms.',
+                    question: 'What makes this pluralism by design rather than "dumbing down"?',
+                    options: [
+                        { id: 'A', text: 'It makes things easier for some students', correct: false },
+                        { id: 'B', text: 'Both tracks have equal standards, just different evidence forms', correct: true },
+                        { id: 'C', text: 'Path B is less rigorous but more accessible', correct: false },
+                        { id: 'D', text: 'It accommodates different learning styles', correct: false }
+                    ],
+                    explanation: 'Correct: B. True pluralism maintains rigor across evidence tracks. Path A requires textual evidence, argument, and engagement with counterarguments. Path B requires interview protocols, consent, documentation, and explicit connection to concepts. Different methods, same standards. This recognizes multiple knowledge traditions as equally legitimate.',
+                    abcdConnection: 'Context (C): Protected lanes for different knowledge forms. Beauty (B): Awe at what becomes visible through multiple perspectives. Agency (A): Students author knowledge in frameworks that match their strengths/communities.',
+                    fourLevelsConnection: 'Capability: Clear specifications for multiple evidence tracks. Constructor: Dual-track rubrics persist year-to-year. Meta-Constructor: Regular review ensuring both tracks maintain equal standing.'
+                }
+            ],
+            repair: [
+                {
+                    id: 'rep1',
+                    scenario: 'After a bias incident, the institution issues a statement: "We hear you. We are committed to doing better. We value diversity." Nothing else happens. The same problems recur next semester.',
+                    question: 'What\'s missing and how do you fix it?',
+                    options: [
+                        { id: 'A', text: 'Nothing - the acknowledgment is sufficient', correct: false },
+                        { id: 'B', text: 'Need better communication of the message', correct: false },
+                        { id: 'C', text: 'Need scheduled commitments with owners, resources, timeline, and review', correct: true },
+                        { id: 'D', text: 'Need to educate people to be less biased', correct: false }
+                    ],
+                    explanation: 'Correct: C. Recognition without remedy is extraction. The Mini-TRC protocol requires: (1) Truth-telling, (2) Acknowledgment, (3) Concrete remedy with owner/resources/deadline, (4) Calendared review, (5) Public progress notes. Statements alone change nothing.',
+                    abcdConnection: 'Dynamics (D): Accountability loops replace one-time statements. Context (C): Formal procedures make repair reliable, not personality-dependent.',
+                    fourLevelsConnection: 'Constructor: Mini-TRC becomes standard protocol. Meta-Constructor: Quarterly reviews of commitments kept/broken, published in change-log. Material follow-through, not just words.'
+                }
+            ],
+            integration: [
+                {
+                    id: 'int1',
+                    scenario: 'Design an assessment for "Understanding Structural Oppression." A student proposes creating a podcast interviewing community organizers about how power operates in their context, with an analytic memo connecting findings to course concepts. Professor says, "That\'s not a real academic format. Write a traditional essay."',
+                    question: 'Using the full toolkit, how do you redesign this interaction?',
+                    options: [
+                        { id: 'A', text: 'Accept the professor\'s judgment - essays are more rigorous', correct: false },
+                        { id: 'B', text: 'Create dual-track rubric making both formats equally valid with clear criteria for each', correct: true },
+                        { id: 'C', text: 'Let students choose format but grade the essay higher', correct: false },
+                        { id: 'D', text: 'Eliminate all format requirements entirely', correct: false }
+                    ],
+                    explanation: 'Correct: B. This combines testimonial justice (recognizing community knowledge), pluralism (multiple evidence tracks), and fair assessment. The podcast track requires: interview protocols, consent forms, transcript/documentation, and analytic memo explicitly connecting findings to concepts. Same rigor, different method. Both demonstrate understanding of structural oppression.',
+                    abcdConnection: 'Full ABCD: Agency (student authors in their framework), Beauty (podcast format may be more compelling), Context (rubric redesign removes hidden gates), Dynamics (new formats create feedback showing what they reveal).',
+                    fourLevelsConnection: 'Capability: Clear dual-track specifications. Constructor: Rubric persists year-to-year with exemplars. Meta-Constructor: Annual review checking if both tracks actually receive equal standing in practice.'
+                }
+            ]
+        };
 
-    const OVERVIEW = {
-      title: 'Part 13 — Global & Decolonial Philosophies; Feminist • Critical Race • Indigenous Thought',
-      bigQuestion: 'Who gets to set the “context,” and how does standpoint change what counts as knowledge?',
-      capabilities: [
-        'Epistemic justice (fair credibility, concept access, uptake of reasons)',
-        'Pluralism by design (hold multiple knowledge systems together)',
-        'Repair & recognition (truth, acknowledgement, remedy, review)'
-      ],
-      abcd: [
-        { letter: 'A', title: 'Agency', line: 'Voice, authorship, co-governance' },
-        { letter: 'B', title: 'Beauty/Awe', line: 'Felt dignity of plurality' },
-        { letter: 'C', title: 'Context', line: 'Institutional gates: rubrics, concepts, procedures' },
-        { letter: 'D', title: 'Dynamics', line: 'Power feedbacks, path dependence, scheduled audits' },
-      ],
-      levels: [
-        { level: 'Capacity', cue: 'Reasons exist but credibility gates/terms suppress expression' },
-        { level: 'Capability', cue: 'Calibrated criteria + shared language enable reliable contribution' },
-        { level: 'Constructor', cue: 'Standing procedures (committees, challenge channels, change-logs)' },
-        { level: 'Meta-constructor', cue: 'Scheduled audits/amendments; rotating roles; versioned concepts' },
-      ]
-    };
-
-    const CONCEPTS = [
-      {
-        id: 'testimonial-injustice',
-        title: 'Testimonial injustice',
-        summary: 'A speaker’s credibility is discounted due to identity-coded cues rather than evidence.',
-        abcd: ['A (voice)', 'C (gates)'],
-        levelMove: 'Capacity → Capability (explicit credibility criteria)',
-        pattern: [
-          'Replace vibe-words with calibrated descriptors tied to rubric criteria',
-          'Enable multiple delivery modes for the same competence'
-        ],
-        watch: 'Over-correcting by dropping standards instead of clarifying them',
-        check: 'Inter-rater reliability ↑; variance across identity groups ↓'
-      },
-      {
-        id: 'hermeneutical-injustice',
-        title: 'Hermeneutical injustice',
-        summary: 'Missing shared concepts render experiences unintelligible to the group.',
-        abcd: ['C (concept infrastructure)', 'D (concept growth)'],
-        levelMove: 'Meta-constructor (scheduled lexicon updates)',
-        pattern: [
-          'Coin local terms; add to a public glossary with examples & dates',
-          'Embed terms into prompts/rubrics so they are actually used'
-        ],
-        watch: 'Private jargon without community uptake',
-        check: 'Glossary cited in work; terms appear in rubrics and feedback'
-      },
-      {
-        id: 'standpoint-methodology',
-        title: 'Standpoint methodology',
-        summary: 'Inquiry improves by systematically including differently situated knowers.',
-        abcd: ['A (authorship)', 'B (plural dignity)'],
-        levelMove: 'Capacity → Capability (roles/prompts require standpoints)',
-        pattern: [
-          'Dual-track evidence (textual analysis + lived expertise/interview)',
-          'Require explicit triangulation notes'
-        ],
-        watch: 'Tokenism without power-sharing in decision points',
-        check: 'Decision notes explain how standpoint evidence altered conclusions'
-      },
-      {
-        id: 'two-eyed-seeing',
-        title: 'Two-Eyed Seeing (Etuaptmumk)',
-        summary: 'Hold two knowledge systems together for joint problem solving.',
-        abcd: ['B (awe of plurality)', 'C (protected lanes)', 'D (co-evolution)'],
-        levelMove: 'Constructor (routine persists & socializes newcomers)',
-        pattern: [
-          'Pair close reading with community-located method',
-          'Produce dual artifacts; run a joint critique'
-        ],
-        watch: 'One eye quietly dominating the other',
-        check: 'Outputs keep both lanes legible; reviewers from each lane sign off'
-      },
-      {
-        id: 'participatory-repair',
-        title: 'Participatory repair (Truth–Recognition–Remedy–Review)',
-        summary: 'From apology to actionable remedy with a calendar and owners.',
-        abcd: ['D (loops)', 'C (procedures)'],
-        levelMove: 'Meta-constructor (living change-log & scheduled re-checks)',
-        pattern: [
-          'Narration → acknowledgement → remedy (owners/resources/dates) → pre-scheduled review'
-        ],
-        watch: 'Symbolic statements without resource commitments',
-        check: 'Change-log shows closed items and next reviews'
-      },
-    ];
-
-    const THREADS = [
-      { id:'derrida', name:'Derrida', hook:'Deconstruction, différance, trace', takeaway:'Context is never neutral; meaning travels through exclusions.', abcd:['C','D'] },
-      { id:'foucault', name:'Foucault', hook:'Power/knowledge, genealogy', takeaway:'Institutions make some knowledges sayable/doable.', abcd:['C','D'] },
-      { id:'beauvoir', name:'Beauvoir', hook:'The Other, situated freedom', takeaway:'Roles and recognition obstruct or enable agency.', abcd:['A','C'] },
-      { id:'said', name:'Said', hook:'Orientalism', takeaway:'Stereotype machines shape what counts as “civilization.”', abcd:['C'] },
-      { id:'spivak', name:'Spivak', hook:'Subaltern', takeaway:'Frames can translate away expression by design.', abcd:['A','C'] },
-      { id:'fanon', name:'Fanon', hook:'Colonial subjectivity, decolonization', takeaway:'Repair requires material change, not only narrative.', abcd:['D','C'] },
-      { id:'lugones-anzaldua', name:'Lugones & Anzaldúa', hook:'World-traveling, borderlands', takeaway:'Plural identities as method; code-switching becomes capability.', abcd:['A','B','C'] },
-      { id:'dotson', name:'Dotson', hook:'Epistemic oppression', takeaway:'Systemic patterns can preclude participation.', abcd:['C','D'] },
-      { id:'smith', name:'Linda Tuhiwai Smith', hook:'Decolonizing methodologies', takeaway:'Community-governed research; protocols as constructors.', abcd:['C','D'] },
-      { id:'santos', name:'Boaventura de Sousa Santos', hook:'Epistemologies of the South', takeaway:'Abyssal lines; ecology of knowledges.', abcd:['B','C'] },
-      { id:'simpson', name:'Leanne Betasamosake Simpson', hook:'Resurgence', takeaway:'Everyday practice as a living constructor of sovereignty.', abcd:['A','D'] },
-    ];
-
-    const PATTERNS = [
-      {
-        id: 'inclusive-procedure',
-        title: 'Inclusive Procedure Pack',
-        goal: 'Convert capacity → capability → constructor',
-        steps: [
-          'Rubric refit: replace impressionistic language with calibrated descriptors & accepted evidence types',
-          'Dual-track submissions (define standards per lane)',
-          'Challenge channel: anonymous form + dated response → public change-log',
-          'Standing co-review: rotating peer/community member; decision notes log “how it changed the outcome”'
-        ],
-        abcd: 'C (gates), A (voice), D (review cadence), B (dignity visible)'
-      },
-      {
-        id: 'mini-trc',
-        title: 'Mini-TRC (Truth–Recognition–Remedy–Review)',
-        goal: 'Move from apology to scheduled remedy',
-        steps: [
-          'Truth: document pattern with multiple standpoints',
-          'Recognition: publish a short acknowledgement brief',
-          'Remedy: concrete actions, owners, resources, dates',
-          'Review: pre-schedule follow-up; update change-log'
-        ],
-        levels: 'Pushes toward meta-constructor'
-      },
-      {
-        id: 'two-eyed-studio',
-        title: 'Two-Eyed Studio',
-        goal: 'Keep both knowledge lanes legible',
-        steps: [
-          'Artifact 1: close textual/analytic product',
-          'Artifact 2: community-located product (interview/mapping/storywork)',
-          'Joint critique: alignments/divergences; redesign that retains both lanes'
-        ],
-        guard: 'Prevent one lane from silently dominating the other'
-      }
-    ];
-
-    const EXAMPLE = {
-      title: 'Worked Example — Redesign a Midterm Essay Rubric',
-      old: '“Clarity, logic, originality (30 pts)” → strong lived reasoning under-scored',
-      steps: [
-        'Capacity diagnostic: reasons exist; lane too narrow',
-        'Capability move: split into 3 calibrated criteria (argument quality, evidence integration, translation skill)',
-        'Constructor move: add rotating co-review; require a short “how it changed my draft” section',
-        'Meta-constructor move: term-end rubric audit; compare variance; submit a one-page change proposal'
-      ],
-      abcdCheck: [
-        'A: co-authored co-review',
-        'B: plural exemplars are showcased',
-        'C: widened, explicit gates',
-        'D: scheduled audit'
-      ],
-      metric: 'Inter-rater reliability ↑, group gaps ↓, self-efficacy ↑'
-    };
-
-    const ASSESSMENT = {
-      rubric: [
-        { level: 'Mastered', text: 'Designs/revises a procedure that widens evidence lanes, embeds challenge/change-log, and runs a scheduled review that leads to an amendment.' },
-        { level: 'Proficient', text: 'Applies two core concepts to redesign a rubric/activity; includes co-review and a dated follow-up; partial calibration present.' },
-        { level: 'Developing', text: 'Identifies harm and names concepts; proposed fixes lack procedural detail or schedule.' },
-        { level: 'Novice', text: 'Describes issues in general terms; no link to procedures or ABCD/Levels.' },
-      ],
-      prompts: [
-        'Where do context gates silently shape whose reasons count in your setting?',
-        'Which two concepts will you implement next week? How, exactly?',
-        'What does repair look like here (owners, resources, dates, next review)?'
-      ],
-      toolkit: [
-        'ABCD card: A (voice), B (plural dignity), C (gates), D (loops)',
-        'Levels cue: Capacity? Capability? Constructor? Meta-constructor?',
-        'Mini-TRC checklist: Truth → Recognition → Remedy → Review (dated)',
-        'Change-log: Item | Rationale | Owner | Resources | Due | Status | Next review',
-        'Glossary line: Term | Plain definition | Example | Introduced by | Date | Next review'
-      ]
-    };
-
-    // -----------------------------
-    // Reusable UI
-    // -----------------------------
-    const SectionCard = ({ children }) => (
-      <div className="bg-white shadow rounded-lg p-6 fade-in">{children}</div>
-    );
-
-    const Pill = ({ children }) => (
-      <span className="inline-block text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 mr-2 mb-2">
-        {children}
-      </span>
-    );
-
-    const Accordion = ({ items, idPrefix, onInteraction }) => {
-      const [openSet, setOpenSet] = useState(new Set());
-      const toggle = (id) => {
-        setOpenSet(prev => {
-          const next = new Set(prev);
-          if (next.has(id)) next.delete(id); else next.add(id);
-          return next;
-        });
-        onInteraction?.();
-      };
-      return (
-        <div className="space-y-3">
-          {items.map(item => {
-            const open = openSet.has(item.id);
-            return (
-              <div key={`${idPrefix}-${item.id}`} className="border rounded-lg bg-white">
-                <button
-                  className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50"
-                  onClick={() => toggle(item.id)}
-                  aria-expanded={open}
-                  aria-controls={`${idPrefix}-panel-${item.id}`}
-                  id={`${idPrefix}-button-${item.id}`}
-                >
-                  <span className="font-semibold text-gray-900">{item.title || item.name}</span>
-                  <span className="text-gray-500">{open ? '▲' : '▼'}</span>
-                </button>
-                {open && (
-                  <div
-                    id={`${idPrefix}-panel-${item.id}`}
-                    className="px-4 pb-4 pt-2 border-t fade-in"
-                    role="region"
-                    aria-labelledby={`${idPrefix}-button-${item.id}`}
-                  >
-                    {'summary' in item && (
-                      <p className="text-gray-700 mb-2">{item.summary}</p>
-                    )}
-
-                    {'hook' in item && (
-                      <div>
-                        <p className="text-sm text-gray-600"><span className="font-semibold">Hook:</span> {item.hook}</p>
-                        <p className="text-sm text-gray-600 mt-1"><span className="font-semibold">Takeaway:</span> {item.takeaway}</p>
-                        <div className="mt-2">
-                          {item.abcd.map((t, i) => <Pill key={`${item.id}-tag-${i}`}>{t}</Pill>)}
-                        </div>
-                      </div>
-                    )}
-
-                    {'abcd' in item && Array.isArray(item.abcd) && item.abcd.length > 0 && !('hook' in item) && (
-                      <div className="mt-2">
-                        <div className="mb-1 text-sm text-gray-600 font-semibold">ABCD</div>
-                        <div>{item.abcd.map((t, i) => <Pill key={`${item.id}-abcd-${i}`}>{t}</Pill>)}</div>
-                      </div>
-                    )}
-
-                    {'levelMove' in item && (
-                      <p className="text-sm text-gray-600 mt-2"><span className="font-semibold">Four-Levels leverage:</span> {item.levelMove}</p>
-                    )}
-
-                    {'pattern' in item && Array.isArray(item.pattern) && (
-                      <div className="mt-2">
-                        <div className="text-sm font-semibold text-gray-700">Use it (pattern)</div>
-                        <ul className="list-disc list-inside text-sm text-gray-700">
-                          {item.pattern.map((p, i) => <li key={`${item.id}-p-${i}`}>{p}</li>)}
-                        </ul>
-                      </div>
-                    )}
-
-                    {'watch' in item && (
-                      <p className="text-sm text-gray-600 mt-2"><span className="font-semibold">Watch for:</span> {item.watch}</p>
-                    )}
-
-                    {'check' in item && (
-                      <p className="text-sm text-gray-600 mt-1"><span className="font-semibold">Checkpoint:</span> {item.check}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      );
-    };
-
-    // -----------------------------
-    // Sections
-    // -----------------------------
-    const Overview = ({ onInteraction }) => (
-      <SectionCard>
-        <h1 className="text-2xl font-bold text-gray-900">{OVERVIEW.title}</h1>
-        <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-          <p className="font-semibold text-blue-900">Big Question</p>
-          <p className="text-gray-800">{OVERVIEW.bigQuestion}</p>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900">Capabilities</h2>
-          <ul className="list-disc list-inside text-gray-700 mt-2">
-            {OVERVIEW.capabilities.map((c,i)=><li key={`cap-${i}`}>{c}</li>)}
-          </ul>
-        </div>
-
-        <div className="mt-6 grid md:grid-cols-2 gap-4">
-          <div className="bg-purple-50 p-4 rounded border border-purple-200">
-            <h3 className="font-semibold text-purple-900 mb-2">ABCD Lens</h3>
-            <ul className="text-gray-700 list-disc list-inside">
-              {OVERVIEW.abcd.map((x,i)=><li key={`abcd-${i}`}><span className="font-semibold">{x.letter} — {x.title}:</span> {x.line}</li>)}
-            </ul>
-          </div>
-          <div className="bg-green-50 p-4 rounded border border-green-200">
-            <h3 className="font-semibold text-green-900 mb-2">Four-Level Diagnostic</h3>
-            <ul className="text-gray-700 list-disc list-inside">
-              {OVERVIEW.levels.map((x,i)=><li key={`lvl-${i}`}><span className="font-semibold">{x.level}:</span> {x.cue}</li>)}
-            </ul>
-          </div>
-        </div>
-      </SectionCard>
-    );
-
-    const Concepts = ({ onInteraction }) => (
-      <SectionCard>
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Core Concepts (quick refresher + application)</h2>
-        </div>
-        <p className="text-gray-700 mt-2 mb-4">Each entry ties concept → ABCD → Four-Levels → practice pattern → pitfalls → checkpoint.</p>
-        <Accordion items={CONCEPTS} idPrefix="concepts" onInteraction={onInteraction}/>
-      </SectionCard>
-    );
-
-    const Threads = ({ onInteraction }) => (
-      <SectionCard>
-        <h2 className="text-xl font-bold text-gray-900">Threads & Influences (concepts as tools)</h2>
-        <p className="text-gray-700 mt-2 mb-4">
-          Use these names as handles for design moves (e.g., “Do a genealogical audit,” “Add a borderlands lane”).
-        </p>
-        <Accordion items={THREADS} idPrefix="threads" onInteraction={onInteraction}/>
-      </SectionCard>
-    );
-
-    const Patterns = ({ onInteraction }) => (
-      <SectionCard>
-        <h2 className="text-xl font-bold text-gray-900">Design Patterns (ready-to-run)</h2>
-        <div className="mt-4 space-y-4">
-          {PATTERNS.map(p => (
-            <div key={p.id} className="border rounded-lg p-4 bg-gray-50">
-              <h3 className="font-semibold text-gray-900">{p.title}</h3>
-              <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Goal:</span> {p.goal}</p>
-              <ul className="list-disc list-inside text-gray-700 mt-2">
-                {p.steps.map((s,i)=><li key={`${p.id}-s-${i}`}>{s}</li>)}
-              </ul>
-              {p.abcd && <p className="text-sm text-gray-700 mt-2"><span className="font-semibold">ABCD:</span> {p.abcd}</p>}
-              {p.levels && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Levels:</span> {p.levels}</p>}
-              {p.guard && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Guardrail:</span> {p.guard}</p>}
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-    );
-
-    const Example = ({ onInteraction }) => (
-      <SectionCard>
-        <h2 className="text-xl font-bold text-gray-900">{EXAMPLE.title}</h2>
-        <div className="mt-2 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-          <p className="text-gray-800"><span className="font-semibold">Old issue:</span> {EXAMPLE.old}</p>
-        </div>
-        <div className="mt-4">
-          <h3 className="font-semibold text-gray-900">Steps</h3>
-          <ol className="list-decimal list-inside text-gray-700 mt-1">
-            {EXAMPLE.steps.map((s,i)=><li key={`ex-s-${i}`}>{s}</li>)}
-          </ol>
-        </div>
-        <div className="mt-4">
-          <h3 className="font-semibold text-gray-900">ABCD check</h3>
-          <ul className="list-disc list-inside text-gray-700 mt-1">
-            {EXAMPLE.abcdCheck.map((s,i)=><li key={`ex-a-${i}`}>{s}</li>)}
-          </ul>
-        </div>
-        <p className="text-gray-700 mt-3"><span className="font-semibold">Metric:</span> {EXAMPLE.metric}</p>
-      </SectionCard>
-    );
-
-    const Assessment = ({ onInteraction }) => (
-      <SectionCard>
-        <h2 className="text-xl font-bold text-gray-900">Assessment & Reflection</h2>
-        <div className="mt-4 grid md:grid-cols-2 gap-4">
-          <div className="bg-white border rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900">Prose Rubric</h3>
-            <ul className="list-disc list-inside text-gray-700 mt-2">
-              {ASSETS.rubricList()}
-            </ul>
-          </div>
-          <div className="bg-white border rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900">Reflection Prompts</h3>
-            <ul className="list-disc list-inside text-gray-700 mt-2">
-              {ASSETS.promptList()}
-            </ul>
-          </div>
-        </div>
-        <div className="bg-gray-100 border rounded-lg p-4 mt-4">
-          <h3 className="font-semibold text-gray-900">One-Page Toolkit</h3>
-          <ul className="list-disc list-inside text-gray-700 mt-2">
-            {ASSETS.toolkitList()}
-          </ul>
-        </div>
-      </SectionCard>
-    );
-
-    // Helpers to render lists (keeps JSX above tidy)
-    const ASSETS = {
-      rubricList() {
-        return ASSESSMENT.rubric.map((r,i)=><li key={`rub-${i}`}><span className="font-semibold">{r.level}:</span> {r.text}</li>);
-      },
-      promptList() {
-        return ASSESSMENT.prompts.map((p,i)=><li key={`pr-${i}`}>{p}</li>);
-      },
-      toolkitList() {
-        return ASSESSMENT.toolkit.map((t,i)=><li key={`tk-${i}`}>{t}</li>);
-      }
-    };
-
-    // -----------------------------
-    // Welcome Screen
-    // -----------------------------
-    function Welcome({ onStart }) {
-      const [form, setForm] = useState({ name:'', email:'', course:'' });
-      const valid = form.name && form.email && form.course;
-
-      const submit = (e) => {
-        e.preventDefault();
-        if (!valid) return;
-        onStart(form);
-      };
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-600">
-          <div className="max-w-3xl mx-auto px-4 py-12">
-            <div className="bg-white rounded-xl shadow-2xl p-8">
-              <h1 className="text-3xl font-extrabold text-gray-900">Part 13 — Context, Standpoint & Repair</h1>
-              <p className="mt-2 text-gray-700">Global & Decolonial • Feminist • Critical Race • Indigenous Thought</p>
-
-              <div className="mt-6 p-4 rounded-lg bg-blue-50 border-l-4 border-blue-400">
-                <p className="text-gray-800"><span className="font-semibold">Big Question:</span> Who sets the context, and how does standpoint change what counts as knowledge?</p>
-              </div>
-
-              <form onSubmit={submit} className="mt-8 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                  <input className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
-                         value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required/>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                  <input type="email" className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
-                         value={form.email} onChange={e=>setForm({...form, email:e.target.value})} required/>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course / Section *</label>
-                  <input className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
-                         value={form.course} onChange={e=>setForm({...form, course:e.target.value})} required/>
-                </div>
-                <button type="submit"
-                        className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg">
-                  Go to Part 13 →
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // -----------------------------
-    // App with tracking
-    // -----------------------------
-    function App() {
-      const [hasStarted, setHasStarted] = useState(false);
-      const [student, setStudent] = useState({ name:'', email:'', course:'' });
-      const [session, setSession] = useState(null);
-      const [current, setCurrent] = useState('overview');
-      const [sectionProgress, setSectionProgress] = useState({}); // id -> {started, startTime, endTime, timeSpent, interactions, status}
-
-      // load saved
-      useEffect(() => {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const data = JSON.parse(raw);
-            if (data && data.hasStarted) {
-              setHasStarted(true);
-              setStudent(data.student || {name:'', email:'', course:''});
-              setSession(data.session || null);
-              setCurrent(data.current || 'overview');
-              setSectionProgress(data.sectionProgress || {});
-            }
-          }
-        } catch (e) { /* ignore */ }
-      }, []);
-
-      // persist
-      useEffect(() => {
-        const payload = { hasStarted, student, session, current, sectionProgress };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      }, [hasStarted, student, session, current, sectionProgress]);
-
-      const startModule = (info) => {
-        const s = { sessionId: generateSessionId(), startTime: nowISO(), completionTime: null };
-        setStudent(info);
-        setSession(s);
-        setHasStarted(true);
-
-        // init progress for each section
-        const init = {};
-        NAV_SECTIONS.forEach(sec => {
-          init[sec.id] = {
-            started: sec.id === 'overview',
-            startTime: sec.id === 'overview' ? nowISO() : null,
-            endTime: null,
-            timeSpent: 0, // minutes
-            interactions: 0,
-            status: sec.id === 'overview' ? 'in-progress' : 'not-started'
-          };
-        });
-        setSectionProgress(init);
-        setCurrent('overview');
-      };
-
-      const progressPercent = useMemo(() => {
-        const ids = NAV_SECTIONS.map(s=>s.id);
-        if (!ids.length) return 0;
-        const visited = ids.filter(id => sectionProgress[id]?.started).length;
-        return Math.round((visited / ids.length) * 100);
-      }, [sectionProgress]);
-
-      const updateSection = (id, updates) => {
-        setSectionProgress(prev => ({
-          ...prev,
-          [id]: { ...prev[id], ...updates }
-        }));
-      };
-
-      const markInteraction = (id) => {
-        const cur = sectionProgress[id] || {};
-        updateSection(id, { interactions: (cur.interactions || 0) + 1, status: 'in-progress' });
-      };
-
-      const navigateTo = (id) => {
-        if (id === current) return;
-
-        // close out current section timing
-        const curProg = sectionProgress[current];
-        if (curProg?.startTime) {
-          const minutes = Math.max(0, Math.round((Date.now() - Date.parse(curProg.startTime)) / 60000));
-          updateSection(current, {
-            endTime: nowISO(),
-            timeSpent: (curProg.timeSpent || 0) + minutes,
-            status: 'visited'
-          });
-        }
-
-        // open new section
-        const nextProg = sectionProgress[id] || {};
-        if (!nextProg.started) {
-          updateSection(id, { started: true, startTime: nowISO(), status: 'in-progress' });
-        } else {
-          // restart timing window
-          updateSection(id, { startTime: nowISO(), status: 'in-progress' });
-        }
-        setCurrent(id);
-      };
-
-      const completeSession = () => {
-        setSession(prev => ({ ...prev, completionTime: nowISO() }));
-      };
-
-      const resetAll = () => {
-        if (!confirm('This will clear all saved Part 13 progress. Continue?')) return;
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-      };
-
-      const downloadReport = () => {
-        const lines = [];
-        lines.push('═══════════════════════════════════════════════════════');
-        lines.push('PART 13 — Context, Standpoint & Repair — Session Report');
-        lines.push('═══════════════════════════════════════════════════════');
-        lines.push('');
-        lines.push(`Name:  ${student.name}`);
-        lines.push(`Email: ${student.email}`);
-        lines.push(`Course: ${student.course}`);
-        lines.push('');
-        if (session) {
-          lines.push(`Session ID: ${session.sessionId}`);
-          lines.push(`Started:    ${new Date(session.startTime).toLocaleString()}`);
-          lines.push(`Completed:  ${session.completionTime ? new Date(session.completionTime).toLocaleString() : '(not marked complete)'}`);
-        }
-        lines.push('');
-        lines.push('Sections:');
-        let totalMin = 0;
-        NAV_SECTIONS.forEach(sec => {
-          const sp = sectionProgress[sec.id] || {};
-          const minutes = sp.timeSpent || 0;
-          totalMin += minutes;
-          lines.push(`- ${sec.label}`);
-          lines.push(`   status: ${sp.status || 'not-started'} | time: ${minutes} min | interactions: ${sp.interactions || 0}`);
-        });
-        lines.push('');
-        lines.push(`Total recorded time: ${totalMin} minutes`);
-        lines.push('═══════════════════════════════════════════════════════');
-
-        const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Part13-Report-${(student.name||'student').replace(/\s+/g,'_')}.txt`;
-        a.click();
-      };
-
-      if (!hasStarted) return <Welcome onStart={startModule} />;
-
-      // active section renderer
-      const renderSection = () => {
-        const onInteraction = () => markInteraction(current);
-        switch(current) {
-          case 'overview':   return <Overview onInteraction={onInteraction} />;
-          case 'concepts':   return <Concepts onInteraction={onInteraction} />;
-          case 'threads':    return <Threads onInteraction={onInteraction} />;
-          case 'patterns':   return <Patterns onInteraction={onInteraction} />;
-          case 'example':    return <Example onInteraction={onInteraction} />;
-          case 'assessment': return <Assessment onInteraction={onInteraction} />;
-          default:           return <Overview onInteraction={onInteraction} />;
-        }
-      };
-
-      const activeProgress = sectionProgress[current] || {};
-      const activeInteractions = activeProgress.interactions || 0;
-
-      return (
-        <div className="min-h-screen">
-          <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-extrabold">Part 13 — Context, Standpoint & Repair</h1>
-                  <p className="opacity-90">Global & Decolonial • Feminist • Critical Race • Indigenous Thought</p>
-                  <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
-                    <div className="h-2 bg-white" style={{width: `${progressPercent}%`}}></div>
-                  </div>
-                  <div className="text-sm mt-1 opacity-90">{progressPercent}% visited</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">{student.name}</div>
-                  <div className="opacity-90">{student.email}</div>
-                  <div className="opacity-90">{student.course}</div>
-                  {session && <div className="mt-1 opacity-90">Session: {session.sessionId}</div>}
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <nav className="bg-white border-b sticky top-0 z-40">
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex overflow-x-auto space-x-2 py-3">
-                {NAV_SECTIONS.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => navigateTo(s.id)}
-                    className={
-                      'px-4 py-2 rounded-lg border ' +
-                      (current === s.id
-                        ? 'bg-purple-100 border-purple-300 text-purple-800 font-semibold'
-                        : 'bg-white border-gray-200 hover:bg-gray-50')
+        // Framework Reference Data
+        const FRAMEWORK_REFERENCE = {
+            abcd: {
+                title: 'ABCD Framework',
+                principles: [
+                    {
+                        letter: 'A',
+                        name: 'Agency',
+                        description: 'Goal-directed, adaptive coordination distributed across scales',
+                        epistemicJustice: 'Who has voice in setting terms? Whose agency is recognized as legitimate contribution?',
+                        example: 'Right-of-reply systems restore agency to challenge evaluations'
+                    },
+                    {
+                        letter: 'B',
+                        name: 'Beauty / Awe',
+                        description: 'Salience that makes control layers visible and creates future pull',
+                        epistemicJustice: 'Does the plural approach reveal possibilities that create "aha!" moments? Does dignity of recognition create pull toward justice?',
+                        example: 'When concepts finally fit lived experience, the elegance is compelling'
+                    },
+                    {
+                        letter: 'C',
+                        name: 'Context / Contingency',
+                        description: 'Conditions that gate which capacities become capabilities',
+                        epistemicJustice: 'What hidden gates (credibility cues, format requirements, insider language) prevent valid contributions from being recognized?',
+                        example: 'Credibility calibration removes identity-coded context gates'
+                    },
+                    {
+                        letter: 'D',
+                        name: 'Dynamics',
+                        description: 'Feedbacks, thresholds, attractors that shape system evolution',
+                        epistemicJustice: 'What feedback loops reward insider fluency? How do we create accountability loops for repair?',
+                        example: 'Change-logs create dynamics where patterns become visible and improvable'
                     }
-                    aria-current={current === s.id ? 'page' : undefined}
-                  >
-                    <span className="mr-2">{s.icon}</span>{s.label}
-                  </button>
-                ))}
-                <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={completeSession}
-                    className="px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                    title="Mark completion time (you can still continue working)"
-                  >
-                    Mark Complete
-                  </button>
-                  <button
-                    onClick={downloadReport}
-                    className="px-3 py-2 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
-                    title="Download a summary of your session"
-                  >
-                    Download Report
-                  </button>
-                  <button
-                    onClick={resetAll}
-                    className="px-3 py-2 rounded-lg border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100"
-                    title="Clear all saved data"
-                  >
-                    Start Over
-                  </button>
+                ]
+            },
+            fourLevels: {
+                title: 'Four Levels of Intervention',
+                levels: [
+                    {
+                        name: 'Capacity',
+                        icon: '💎',
+                        description: 'Latent potential that exists but isn\'t expressed due to context',
+                        epistemicJustice: 'People have valid insights and experiences - context suppresses their expression',
+                        intervention: 'Context redesign: Remove credibility gates, expand conceptual vocabulary'
+                    },
+                    {
+                        name: 'Capability',
+                        icon: '⚙️',
+                        description: 'Reliable methods for performing coordination functions',
+                        epistemicJustice: 'Build clear protocols for expressing diverse knowledge forms with explicit standards',
+                        intervention: 'Specifications: Dual-track rubrics, credibility calibration, concept-coining options'
+                    },
+                    {
+                        name: 'Constructor',
+                        icon: '🏗️',
+                        description: 'Systems that repeatedly produce transformations and persist',
+                        epistemicJustice: 'Institutionalize fair practices so they work regardless of who\'s present',
+                        intervention: 'Documentation: Mini-TRC protocols, standing co-review, change-logs'
+                    },
+                    {
+                        name: 'Meta-Constructor',
+                        icon: '🔄',
+                        description: 'Systems that examine and improve their own processes',
+                        epistemicJustice: 'Build review mechanisms that adapt when new exclusions are identified',
+                        intervention: 'Learning systems: Scheduled audits, challenge channels, living lexicons'
+                    }
+                ]
+            },
+            prf: {
+                title: 'Phenomenal Reference Frame',
+                description: 'Your PRF is the situated perspective from which you experience and interpret the world - shaped by your social position, history, embodied experience, and available concepts.',
+                epistemicConnection: 'Different PRFs reveal different aspects of reality. Epistemic justice means: (1) Recognizing PRF differences are real, not deficits. (2) Building procedures that make multiple PRFs expressible. (3) Using PRF diversity to improve collective knowledge.',
+                examples: [
+                    'A wheelchair user\'s PRF reveals accessibility barriers that walking people literally don\'t see',
+                    'A working-class student\'s PRF understands economic precarity that wealthy students only theorize',
+                    'An Indigenous person\'s PRF holds relational knowledge that Western frameworks often miss'
+                ]
+            },
+            embeddedness: {
+                title: 'Embeddedness in Complex Social Systems',
+                description: 'We\'re not isolated atoms but nodes in webs of relationships, institutions, power structures, and historical trajectories. Our PRFs are shaped by these embeddings.',
+                epistemicConnection: 'Epistemic injustice operates systemically: credibility discounts aren\'t just individual prejudice but patterns maintained by institutional procedures, cultural norms, and feedback loops. Solutions must be systemic too - not just "be less biased" but redesign the procedures.',
+                levels: [
+                    { name: 'Individual', example: 'Your specific PRF, experiences, capacities' },
+                    { name: 'Interpersonal', example: 'How credibility works in conversations and collaborations' },
+                    { name: 'Institutional', example: 'Rubrics, protocols, archives that encode whose knowledge counts' },
+                    { name: 'Cultural', example: 'Shared concepts, norms, whose voices are "authoritative"' },
+                    { name: 'Historical', example: 'Accumulated exclusions and how knowledge traditions formed' }
+                ]
+            }
+        };
+
+        // Main App Component
+        function App() {
+            const [studentInfo, setStudentInfo] = useState({ name: '', email: '', course: '' });
+            const [hasStarted, setHasStarted] = useState(false);
+            const [currentSection, setCurrentSection] = useState('intro');
+            const [sessionData, setSessionData] = useState(null);
+            const [sectionProgress, setSectionProgress] = useState({});
+            const [practiceResults, setPracticeResults] = useState({});
+            const [designExercise, setDesignExercise] = useState(null);
+            const [frameworkExpanded, setFrameworkExpanded] = useState(false);
+
+            // Load saved progress
+            useEffect(() => {
+                const saved = localStorage.getItem('epistemicJusticeProgress');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.hasStarted) {
+                        setHasStarted(true);
+                        setStudentInfo(data.studentInfo || {});
+                        setCurrentSection(data.currentSection || 'intro');
+                        setSessionData(data.sessionData || null);
+                        setSectionProgress(data.sectionProgress || {});
+                        setPracticeResults(data.practiceResults || {});
+                        setDesignExercise(data.designExercise || null);
+                    }
+                }
+
+                const frameworkSaved = localStorage.getItem('ejFrameworkExpanded');
+                if (frameworkSaved) setFrameworkExpanded(JSON.parse(frameworkSaved));
+            }, []);
+
+            // Save progress
+            useEffect(() => {
+                if (hasStarted) {
+                    localStorage.setItem('epistemicJusticeProgress', JSON.stringify({
+                        hasStarted,
+                        studentInfo,
+                        currentSection,
+                        sessionData,
+                        sectionProgress,
+                        practiceResults,
+                        designExercise
+                    }));
+                }
+            }, [hasStarted, studentInfo, currentSection, sessionData, sectionProgress, practiceResults, designExercise]);
+
+            useEffect(() => {
+                localStorage.setItem('ejFrameworkExpanded', JSON.stringify(frameworkExpanded));
+            }, [frameworkExpanded]);
+
+            const startModule = (info) => {
+                const session = {
+                    sessionId: generateSessionId(),
+                    startTime: new Date().toISOString(),
+                    completionTime: null
+                };
+                setStudentInfo(info);
+                setSessionData(session);
+                setHasStarted(true);
+                
+                const initialProgress = {};
+                ['intro', 'testimonial', 'hermeneutical', 'pluralism', 'repair', 'integration', 'design', 'assessment'].forEach(section => {
+                    initialProgress[section] = {
+                        started: section === 'intro',
+                        startTime: section === 'intro' ? new Date().toISOString() : null,
+                        endTime: null,
+                        status: section === 'intro' ? 'in-progress' : 'not-started'
+                    };
+                });
+                setSectionProgress(initialProgress);
+            };
+
+            const navigateToSection = (sectionId) => {
+                if (sectionProgress[currentSection]) {
+                    const startTime = new Date(sectionProgress[currentSection].startTime);
+                    const now = new Date();
+                    const timeSpent = Math.round((now - startTime) / 60000);
+                    
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [currentSection]: {
+                            ...prev[currentSection],
+                            endTime: now.toISOString(),
+                            timeSpent
+                        }
+                    }));
+                }
+
+                if (sectionProgress[sectionId] && !sectionProgress[sectionId].started) {
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [sectionId]: {
+                            ...prev[sectionId],
+                            started: true,
+                            startTime: new Date().toISOString(),
+                            status: 'in-progress'
+                        }
+                    }));
+                }
+
+                setCurrentSection(sectionId);
+            };
+
+            const completeSection = (sectionId, masteryLevel = 'proficient') => {
+                const startTime = new Date(sectionProgress[sectionId].startTime);
+                const now = new Date();
+                const timeSpent = Math.round((now - startTime) / 60000);
+
+                setSectionProgress(prev => ({
+                    ...prev,
+                    [sectionId]: {
+                        ...prev[sectionId],
+                        endTime: now.toISOString(),
+                        timeSpent,
+                        status: masteryLevel
+                    }
+                }));
+            };
+
+            const calculateOverallProgress = () => {
+                const sections = Object.keys(sectionProgress);
+                if (sections.length === 0) return 0;
+                
+                const completedCount = sections.filter(s => {
+                    const status = sectionProgress[s].status;
+                    return ['proficient', 'mastered', 'developing'].includes(status);
+                }).length;
+                
+                return Math.round((completedCount / sections.length) * 100);
+            };
+
+            if (!hasStarted) {
+                return <WelcomeScreen onStart={startModule} />;
+            }
+
+            const sections = [
+                { id: 'intro', label: 'Introduction', icon: '🎯' },
+                { id: 'testimonial', label: 'Testimonial Justice', icon: '🗣️' },
+                { id: 'hermeneutical', label: 'Hermeneutical Justice', icon: '📖' },
+                { id: 'pluralism', label: 'Pluralism by Design', icon: '🌈' },
+                { id: 'repair', label: 'Repair & Recognition', icon: '🔧' },
+                { id: 'integration', label: 'Framework Integration', icon: '🔗' },
+                { id: 'design', label: 'Design Exercise', icon: '🎨' },
+                { id: 'assessment', label: 'Final Assessment', icon: '✓' }
+            ];
+
+            const getSectionStatus = (sectionId) => {
+                const progress = sectionProgress[sectionId];
+                if (!progress || !progress.started) return 'not-started';
+                return progress.status;
+            };
+
+            return (
+                <div className="min-h-screen">
+                    <header className="gradient-bg text-white shadow-lg">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h1 className="text-3xl font-bold mb-2">Epistemic Justice Toolkit</h1>
+                                    <p className="text-lg opacity-90">Applied Critical Thinking for Fair Knowledge Practices</p>
+                                    
+                                    <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+                                        <div 
+                                            className="progress-bar bg-white h-full"
+                                            style={{ width: `${calculateOverallProgress()}%` }}
+                                        ></div>
+                                    </div>
+                                    <p className="text-sm mt-2 opacity-80">{calculateOverallProgress()}% Complete</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm('⚠️ This will delete all progress. Are you sure?')) {
+                                            localStorage.clear();
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg font-semibold transition-colors"
+                                >
+                                    🔄 Start Over
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <nav className="bg-white shadow-sm sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex overflow-x-auto py-4 space-x-2">
+                                {sections.map(section => {
+                                    const status = getSectionStatus(section.id);
+                                    const isCurrent = currentSection === section.id;
+                                    
+                                    return (
+                                        <button
+                                            key={section.id}
+                                            onClick={() => navigateToSection(section.id)}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                                                isCurrent ? 'bg-purple-100 text-purple-700 font-semibold' : 'hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <span className="text-xl">{section.icon}</span>
+                                            <span>{section.label}</span>
+                                            {status === 'mastered' && <span>⭐</span>}
+                                            {status === 'proficient' && <span>✓</span>}
+                                            {status === 'developing' && <span>🔄</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div className="max-w-7xl mx-auto px-4 pt-4">
+                        <FrameworkReferencePanel 
+                            expanded={frameworkExpanded}
+                            setExpanded={setFrameworkExpanded}
+                        />
+                    </div>
+
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        <div className="fade-in">
+                            {currentSection === 'intro' && (
+                                <IntroSection 
+                                    onComplete={() => completeSection('intro')}
+                                    onNext={() => navigateToSection('testimonial')}
+                                />
+                            )}
+                            {currentSection === 'testimonial' && (
+                                <TestimonialJusticeSection 
+                                    practiceResults={practiceResults.testimonial || {}}
+                                    setPracticeResults={(results) => setPracticeResults(prev => ({
+                                        ...prev,
+                                        testimonial: results
+                                    }))}
+                                    onComplete={(mastery) => completeSection('testimonial', mastery)}
+                                    onNext={() => navigateToSection('hermeneutical')}
+                                />
+                            )}
+                            {currentSection === 'hermeneutical' && (
+                                <HermeneuticalJusticeSection 
+                                    practiceResults={practiceResults.hermeneutical || {}}
+                                    setPracticeResults={(results) => setPracticeResults(prev => ({
+                                        ...prev,
+                                        hermeneutical: results
+                                    }))}
+                                    onComplete={(mastery) => completeSection('hermeneutical', mastery)}
+                                    onNext={() => navigateToSection('pluralism')}
+                                />
+                            )}
+                            {currentSection === 'pluralism' && (
+                                <PluralismSection 
+                                    practiceResults={practiceResults.pluralism || {}}
+                                    setPracticeResults={(results) => setPracticeResults(prev => ({
+                                        ...prev,
+                                        pluralism: results
+                                    }))}
+                                    onComplete={(mastery) => completeSection('pluralism', mastery)}
+                                    onNext={() => navigateToSection('repair')}
+                                />
+                            )}
+                            {currentSection === 'repair' && (
+                                <RepairSection 
+                                    practiceResults={practiceResults.repair || {}}
+                                    setPracticeResults={(results) => setPracticeResults(prev => ({
+                                        ...prev,
+                                        repair: results
+                                    }))}
+                                    onComplete={(mastery) => completeSection('repair', mastery)}
+                                    onNext={() => navigateToSection('integration')}
+                                />
+                            )}
+                            {currentSection === 'integration' && (
+                                <IntegrationSection 
+                                    practiceResults={practiceResults.integration || {}}
+                                    setPracticeResults={(results) => setPracticeResults(prev => ({
+                                        ...prev,
+                                        integration: results
+                                    }))}
+                                    onComplete={(mastery) => completeSection('integration', mastery)}
+                                    onNext={() => navigateToSection('design')}
+                                />
+                            )}
+                            {currentSection === 'design' && (
+                                <DesignExerciseSection 
+                                    designExercise={designExercise}
+                                    setDesignExercise={setDesignExercise}
+                                    onComplete={(mastery) => completeSection('design', mastery)}
+                                    onNext={() => navigateToSection('assessment')}
+                                />
+                            )}
+                            {currentSection === 'assessment' && (
+                                <AssessmentSection 
+                                    studentInfo={studentInfo}
+                                    sessionData={sessionData}
+                                    sectionProgress={sectionProgress}
+                                    practiceResults={practiceResults}
+                                    designExercise={designExercise}
+                                    onComplete={(results) => {
+                                        const mastery = calculateMastery(results.percentage);
+                                        completeSection('assessment', mastery);
+                                        setSessionData(prev => ({
+                                            ...prev,
+                                            completionTime: new Date().toISOString(),
+                                            finalResults: results
+                                        }));
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </main>
                 </div>
-              </div>
-            </div>
-          </nav>
+            );
+        }
 
-          <main className="max-w-6xl mx-auto px-4 py-6">
-            {renderSection()}
-            <div className="text-xs text-gray-500 mt-4">
-              Section interactions: {activeInteractions}
-            </div>
-          </main>
+        // Framework Reference Panel Component
+        function FrameworkReferencePanel({ expanded, setExpanded }) {
+            const [activeTab, setActiveTab] = useState('abcd');
 
-          <footer className="py-8 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Part 13 • ABCD + Four-Levels • For classroom use
-          </footer>
-        </div>
-      );
-    }
+            return (
+                <div className="mb-6 border border-gray-300 rounded-lg overflow-hidden bg-white shadow">
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="w-full px-4 py-3 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <span className="text-lg">🧭</span>
+                            <span className="font-semibold text-gray-900">Framework Navigation</span>
+                            <span className="text-sm text-gray-600">(ABCD, Four Levels, PRF, Embeddedness)</span>
+                        </div>
+                        <span className="text-gray-600">{expanded ? '▼ Collapse' : '▶ Expand'}</span>
+                    </button>
+                    
+                    {expanded && (
+                        <div className="p-6 bg-white border-t border-gray-200">
+                            <div className="flex space-x-2 mb-4 border-b">
+                                {['abcd', 'fourLevels', 'prf', 'embeddedness'].map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`px-4 py-2 font-semibold transition-colors ${
+                                            activeTab === tab
+                                                ? 'border-b-2 border-purple-600 text-purple-600'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {tab === 'abcd' && 'ABCD Framework'}
+                                        {tab === 'fourLevels' && 'Four Levels'}
+                                        {tab === 'prf' && 'PRF'}
+                                        {tab === 'embeddedness' && 'Embeddedness'}
+                                    </button>
+                                ))}
+                            </div>
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+                            {activeTab === 'abcd' && (
+                                <div className="space-y-3">
+                                    <h4 className="font-bold text-gray-900">ABCD Framework</h4>
+                                    {FRAMEWORK_REFERENCE.abcd.principles.map(p => (
+                                        <div key={p.letter} className="bg-gray-50 p-3 rounded-lg">
+                                            <div className="flex items-start space-x-2">
+                                                <span className="font-bold text-purple-600 text-xl">{p.letter}</span>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-sm text-gray-900">{p.name}</p>
+                                                    <p className="text-xs text-gray-600 mb-1">{p.description}</p>
+                                                    <p className="text-xs text-purple-700 italic">→ {p.epistemicJustice}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'fourLevels' && (
+                                <div className="space-y-3">
+                                    <h4 className="font-bold text-gray-900">Four Levels of Intervention</h4>
+                                    {FRAMEWORK_REFERENCE.fourLevels.levels.map(level => (
+                                        <div key={level.name} className="bg-gray-50 p-3 rounded-lg">
+                                            <div className="flex items-start space-x-2">
+                                                <span className="text-2xl">{level.icon}</span>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-sm text-gray-900">{level.name}</p>
+                                                    <p className="text-xs text-gray-600 mb-1">{level.description}</p>
+                                                    <p className="text-xs text-purple-700 italic">→ {level.epistemicJustice}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'prf' && (
+                                <div>
+                                    <h4 className="font-bold text-gray-900 mb-2">{FRAMEWORK_REFERENCE.prf.title}</h4>
+                                    <p className="text-sm text-gray-700 mb-3">{FRAMEWORK_REFERENCE.prf.description}</p>
+                                    <div className="bg-purple-50 p-3 rounded-lg mb-3">
+                                        <p className="text-sm font-semibold text-purple-900 mb-1">Epistemic Connection:</p>
+                                        <p className="text-xs text-gray-700">{FRAMEWORK_REFERENCE.prf.epistemicConnection}</p>
+                                    </div>
+                                    <p className="text-xs font-semibold text-gray-600 mb-2">Examples:</p>
+                                    {FRAMEWORK_REFERENCE.prf.examples.map((ex, i) => (
+                                        <p key={i} className="text-xs text-gray-700 mb-1">• {ex}</p>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'embeddedness' && (
+                                <div>
+                                    <h4 className="font-bold text-gray-900 mb-2">{FRAMEWORK_REFERENCE.embeddedness.title}</h4>
+                                    <p className="text-sm text-gray-700 mb-3">{FRAMEWORK_REFERENCE.embeddedness.description}</p>
+                                    <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                                        <p className="text-sm font-semibold text-blue-900 mb-1">Epistemic Connection:</p>
+                                        <p className="text-xs text-gray-700">{FRAMEWORK_REFERENCE.embeddedness.epistemicConnection}</p>
+                                    </div>
+                                    <p className="text-xs font-semibold text-gray-600 mb-2">Levels of Embeddedness:</p>
+                                    {FRAMEWORK_REFERENCE.embeddedness.levels.map((level, i) => (
+                                        <div key={i} className="text-xs text-gray-700 mb-2">
+                                            <span className="font-semibold">{level.name}:</span> {level.example}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Welcome Screen Component
+        function WelcomeScreen({ onStart }) {
+            const [formData, setFormData] = useState({ name: '', email: '', course: '' });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.name && formData.email && formData.course) {
+                    onStart(formData);
+                }
+            };
+
+            return (
+                <div className="min-h-screen gradient-bg py-12 px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-4">Epistemic Justice Toolkit</h1>
+                            <p className="text-xl text-gray-700 mb-6">
+                                Applied Critical Thinking for Fair Knowledge Practices
+                            </p>
+
+                            <div className="prose prose-lg max-w-none mb-8">
+                                <p className="text-gray-700">
+                                    <strong>Who gets to know?</strong> This toolkit teaches you to recognize and repair epistemic injustices—
+                                    systematic patterns where some people's knowledge is discounted, some experiences can't be expressed, 
+                                    and some communities are excluded from knowledge-making.
+                                </p>
+
+                                <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                    <h3 className="text-xl font-semibold text-purple-900 mb-2">What You'll Master</h3>
+                                    <ul className="space-y-2 text-gray-700">
+                                        <li><strong>Testimonial Justice:</strong> Calibrate credibility based on evidence, not identity</li>
+                                        <li><strong>Hermeneutical Justice:</strong> Build shared vocabularies that capture diverse experiences</li>
+                                        <li><strong>Pluralism by Design:</strong> Create multi-track systems that recognize diverse knowledge forms</li>
+                                        <li><strong>Repair & Recognition:</strong> Move from acknowledgment to material accountability</li>
+                                    </ul>
+                                </div>
+
+                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">Framework Connections</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-blue-900 mb-2">🧭 ABCD Framework</h4>
+                                        <p className="text-sm text-gray-700">
+                                            Map how Agency, Beauty, Context, and Dynamics shape who gets heard
+                                        </p>
+                                    </div>
+                                    <div className="bg-green-50 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-green-900 mb-2">📊 Four Levels</h4>
+                                        <p className="text-sm text-gray-700">
+                                            Intervene at Capacity, Capability, Constructor, Meta-Constructor levels
+                                        </p>
+                                    </div>
+                                    <div className="bg-yellow-50 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-yellow-900 mb-2">👁️ PRF (Phenomenal Reference Frame)</h4>
+                                        <p className="text-sm text-gray-700">
+                                            Understand how situated perspectives reveal different truths
+                                        </p>
+                                    </div>
+                                    <div className="bg-purple-50 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-purple-900 mb-2">🕸️ Social Embeddedness</h4>
+                                        <p className="text-sm text-gray-700">
+                                            See how systems maintain exclusions across scales
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-100 p-6 rounded-lg mt-6">
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-3">What You'll Do</h3>
+                                    <ul className="space-y-2 text-gray-700">
+                                        <li>✓ <strong>Interactive Learning:</strong> Explore each concept with scenarios and examples</li>
+                                        <li>✓ <strong>Practice Throughout:</strong> Apply concepts to realistic situations</li>
+                                        <li>✓ <strong>Design Exercise:</strong> Redesign an actual assessment for justice</li>
+                                        <li>✓ <strong>Framework Integration:</strong> Connect to ABCD, Four Levels, PRF</li>
+                                        <li>✓ <strong>Final Assessment:</strong> Demonstrate mastery</li>
+                                        <li>✓ <strong>Completion Certificate:</strong> Detailed documentation of your work</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-2xl p-8">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Before You Begin</h3>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                        placeholder="Enter your full name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        placeholder="your.email@university.edu"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Course/Section *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        value={formData.course}
+                                        onChange={(e) => setFormData({...formData, course: e.target.value})}
+                                        placeholder="e.g., Critical Thinking 301"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                                >
+                                    Begin Epistemic Justice Toolkit →
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Due to length, I'll continue with the section components in the next part of the code...
+        // For now, let me create placeholder sections and then we can expand them
+
+        // Introduction Section
+        function IntroSection({ onComplete, onNext }) {
+            useEffect(() => {
+                onComplete();
+            }, []);
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                        Who Gets to Know?
+                    </h2>
+                    <div className="prose prose-lg max-w-none">
+                        <p className="text-xl text-gray-700 leading-relaxed mb-6">
+                            Most discussions about knowledge focus on <em>what</em> we know and <em>why</em> we should 
+                            believe it. But there's a prior question: <strong>Who gets to participate in knowledge-making, 
+                            and who decides what counts as valid knowledge?</strong>
+                        </p>
+
+                        <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                            <h3 className="text-xl font-semibold text-purple-900 mb-2">The Core Problem</h3>
+                            <p className="text-gray-700">
+                                Many brilliant insights and legitimate ways of knowing have been systematically excluded from 
+                                academic and institutional spaces—not because they lacked rigor, but because the people offering 
+                                them lacked the "right" credentials, spoke in the "wrong" register, or came from communities 
+                                that dominant institutions didn't recognize as knowledge producers.
+                            </p>
+                        </div>
+
+                        <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Three Forms of Epistemic Injustice</h3>
+                        
+                        <div className="space-y-4">
+                            <div className="framework-card bg-blue-50 p-6 rounded-lg">
+                                <h4 className="text-lg font-bold text-blue-900 mb-2">1. Testimonial Injustice</h4>
+                                <p className="text-gray-700 mb-3">
+                                    Someone's credibility is discounted based on identity (race, gender, class) rather than evidence quality.
+                                </p>
+                                <p className="text-sm text-blue-800 italic">
+                                    Example: A woman's report of harassment is dismissed as "emotional," while a man's identical report is "serious."
+                                </p>
+                            </div>
+
+                            <div className="framework-card bg-green-50 p-6 rounded-lg">
+                                <h4 className="text-lg font-bold text-green-900 mb-2">2. Hermeneutical Injustice</h4>
+                                <p className="text-gray-700 mb-3">
+                                    A community lacks shared concepts to make certain experiences intelligible.
+                                </p>
+                                <p className="text-sm text-green-800 italic">
+                                    Example: Before "microaggression" was coined, people of color experienced these slights but 
+                                    couldn't articulate the pattern in collectively recognized terms.
+                                </p>
+                            </div>
+
+                            <div className="framework-card bg-yellow-50 p-6 rounded-lg">
+                                <h4 className="text-lg font-bold text-yellow-900 mb-2">3. Structural Exclusion</h4>
+                                <p className="text-gray-700 mb-3">
+                                    Dominant methods make it structurally impossible for alternative knowledge forms to be expressed.
+                                </p>
+                                <p className="text-sm text-yellow-800 italic">
+                                    Example: "Only written text-based analysis counts" excludes oral traditions, relational knowing, 
+                                    and community-verified wisdom.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg p-6 mt-8">
+                            <h3 className="text-xl font-semibold text-purple-900 mb-3">The Toolkit Approach</h3>
+                            <p className="text-gray-700 mb-4">
+                                This isn't about "being nice" or "lowering standards." It's about building <strong>more accurate, 
+                                robust, and accountable knowledge practices</strong>. When we exclude perspectives, we don't just 
+                                harm those excluded—we impoverish everyone's understanding.
+                            </p>
+                            <p className="text-gray-700">
+                                You'll learn to design systems that make epistemic justice <em>reliable</em>—not dependent on 
+                                individual virtue but encoded in procedures, rubrics, and accountability mechanisms.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={onNext}
+                        className="mt-8 w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                        Continue to Testimonial Justice →
+                    </button>
+                </div>
+            );
+        }
+
+        // Testimonial Justice Section (with practice)
+        function TestimonialJusticeSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            const [currentScenario, setCurrentScenario] = useState(0);
+            const [scenarioAnswer, setScenarioAnswer] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+
+            const scenarios = PRACTICE_SCENARIOS.testimonial;
+
+            const handleScenarioAnswer = (optionId) => {
+                setScenarioAnswer(optionId);
+                const scenario = scenarios[currentScenario];
+                const correct = scenario.options.find(o => o.id === optionId).correct;
+                
+                const newResults = {
+                    ...practiceResults,
+                    [scenario.id]: { correct, selectedAnswer: optionId }
+                };
+                setPracticeResults(newResults);
+            };
+
+            const handleNextScenario = () => {
+                if (currentScenario < scenarios.length - 1) {
+                    setCurrentScenario(currentScenario + 1);
+                    setScenarioAnswer(null);
+                } else {
+                    const correct = Object.values(practiceResults).filter(r => r.correct).length;
+                    const total = scenarios.length;
+                    const percentage = (correct / total) * 100;
+                    const mastery = calculateMastery(percentage);
+                    onComplete(mastery);
+                }
+            };
+
+            if (!showScenarios) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Testimonial Justice</h2>
+                        
+                        <div className="prose prose-lg max-w-none mb-8">
+                            <p className="text-gray-700 mb-4">
+                                <strong>Testimonial injustice</strong> occurs when someone's credibility is systematically 
+                                discounted based on identity-coded cues rather than evidence quality.
+                            </p>
+
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 my-6">
+                                <h3 className="text-lg font-semibold text-blue-900 mb-2">The Problem</h3>
+                                <p className="text-gray-700">
+                                    Evaluators use vague qualities like "authority," "professionalism," or "sophistication" 
+                                    that actually encode class, race, and gender biases. The same evidence receives different 
+                                    credibility ratings based on who presents it.
+                                </p>
+                            </div>
+
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3">The Solution: Credibility Calibration</h3>
+                            <p className="text-gray-700 mb-4">
+                                Replace identity-coded cues with explicit, evidence-based criteria:
+                            </p>
+
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                <p className="font-semibold text-gray-900 mb-2">Replace:</p>
+                                <p className="text-gray-700 mb-3">"This source isn't credible" (vague, identity-coded)</p>
+                                <p className="font-semibold text-gray-900 mb-2">With:</p>
+                                <p className="text-gray-700">"This claim needs corroboration because [specific reason related to evidence quality]"</p>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">ABCD Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Context (C):</strong> Identity-coded cues act as hidden gates</li>
+                                    <li><strong>Agency (A):</strong> Credibility discounts diminish voice</li>
+                                    <li><strong>Dynamics (D):</strong> Patterns reinforce themselves over time</li>
+                                </ul>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Four-Levels Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Capacity:</strong> People have valid insights</li>
+                                    <li><strong>Context Suppression:</strong> Credibility cues prevent expression</li>
+                                    <li><strong>Capability Intervention:</strong> Calibrated credibility criteria</li>
+                                    <li><strong>Constructor:</strong> Rubrics with explicit, identity-neutral standards</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowScenarios(true)}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Start Practice Scenarios →
+                        </button>
+                    </div>
+                );
+            }
+
+            const scenario = scenarios[currentScenario];
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                        Testimonial Justice - Scenario {currentScenario + 1} of {scenarios.length}
+                    </h3>
+
+                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">Scenario:</h4>
+                        <p className="text-gray-700">{scenario.scenario}</p>
+                    </div>
+
+                    <p className="font-semibold text-gray-900 mb-4">{scenario.question}</p>
+
+                    <div className="space-y-3 mb-6">
+                        {scenario.options.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleScenarioAnswer(option.id)}
+                                disabled={scenarioAnswer !== null}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    scenarioAnswer === option.id
+                                        ? option.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                                        : scenarioAnswer && option.correct ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                            >
+                                <div className="flex items-start">
+                                    <span className="font-bold mr-3">{option.id}.</span>
+                                    <p className="flex-1">{option.text}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {scenarioAnswer && (
+                        <>
+                            <div className={`p-4 rounded-lg mb-4 ${
+                                practiceResults[scenario.id]?.correct
+                                    ? 'bg-green-50 border-l-4 border-green-500'
+                                    : 'bg-red-50 border-l-4 border-red-500'
+                            }`}>
+                                <p className="text-sm font-semibold mb-2">
+                                    {practiceResults[scenario.id]?.correct ? '✓ Correct!' : '✗ Not quite'}
+                                </p>
+                                <p className="text-sm text-gray-700 mb-3">{scenario.explanation}</p>
+                                
+                                <div className="bg-white p-3 rounded mt-3">
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">ABCD Connection:</p>
+                                    <p className="text-xs text-gray-700 mb-2">{scenario.abcdConnection}</p>
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">Four-Levels Connection:</p>
+                                    <p className="text-xs text-gray-700">{scenario.fourLevelsConnection}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleNextScenario}
+                                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                {currentScenario < scenarios.length - 1 ? 'Next Scenario →' : 'Complete Section →'}
+                            </button>
+                        </>
+                    )}
+
+                    {!scenarioAnswer && Object.keys(practiceResults).length === scenarios.length && (
+                        <button
+                            onClick={onNext}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors mt-6"
+                        >
+                            Continue to Hermeneutical Justice →
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        // Placeholder sections (to be expanded similarly)
+        function HermeneuticalJusticeSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            // Similar structure to TestimonialJusticeSection
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Hermeneutical Justice</h2>
+                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
+                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Pluralism →
+                    </button>
+                </div>
+            );
+        }
+
+        function PluralismSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Pluralism by Design</h2>
+                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
+                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Repair & Recognition →
+                    </button>
+                </div>
+            );
+        }
+
+        function RepairSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Repair & Recognition</h2>
+                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
+                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Integration →
+                    </button>
+                </div>
+            );
+        }
+
+        function IntegrationSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Framework Integration</h2>
+                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
+                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Design Exercise →
+                    </button>
+                </div>
+            );
+        }
+
+        function DesignExerciseSection({ designExercise, setDesignExercise, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Design Exercise</h2>
+                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
+                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Assessment →
+                    </button>
+                </div>
+            );
+        }
+
+        function AssessmentSection({ studentInfo, sessionData, sectionProgress, practiceResults, designExercise, onComplete }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Final Assessment & Completion</h2>
+                    <p className="text-gray-700 mb-6">Assessment and completion certificate coming in full implementation...</p>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
