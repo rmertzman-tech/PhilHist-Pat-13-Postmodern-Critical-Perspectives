@@ -1,675 +1,788 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRF Synthesizer & Analyzer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .card {
-            background-color: white;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .btn {
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        .btn-primary {
-            background-color: #4f46e5;
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #4338ca;
-        }
-        .btn-secondary {
-            background-color: #6b7280;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
-        .upload-box {
-            border: 2px dashed #d1d5db;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.3s, background-color 0.3s;
-            position: relative;
-        }
-        .upload-box:hover, .upload-box.drag-over {
-            border-color: #4f46e5;
-            background-color: #f0f2ff;
-        }
-        .upload-box.filled {
-             border-color: #10b981;
-             background-color: #f0fdf4;
-        }
-        .clear-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 1.75rem;
-            height: 1.75rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-            font-size: 1.25rem;
-        }
-        .clear-btn:hover {
-            background-color: #dc2626;
-        }
-        .expand-btn {
-            position: absolute;
-            top: 0.5rem;
-            left: 0.5rem;
-            background-color: #6b7280;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 1.75rem;
-            height: 1.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.7;
-        }
-        .expand-btn:hover {
-            opacity: 1;
-        }
-        .review-box-container {
-            position: relative;
-        }
-        .review-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            height: 450px;
-            transition: all 0.5s ease-in-out;
-        }
-        .review-grid.focused .review-box-container {
-            flex-grow: 0;
-            width: 50px; /* Shrink width */
-        }
-        .review-grid.focused .review-box-container.is-focused {
-            flex-grow: 1;
-            width: auto; /* Expand width */
-        }
-        .review-grid.focused {
-            display: flex;
-        }
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
+  <title>Part 13 — Global & Decolonial; Feminist/Critical Race/Indigenous</title>
 
-        .screen {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .hidden {
-            display: none;
-        }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border-left-color: #fff;
-            animation: spin 1s ease infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .chat-message {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            margin-bottom: 0.5rem;
-            white-space: pre-wrap;
-        }
-        .user-message {
-            background-color: #4f46e5;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 0.25rem;
-        }
-        .ai-message {
-            background-color: #e5e7eb;
-            color: #1f2937;
-            align-self: flex-start;
-            border-bottom-left-radius: 0.25rem;
-        }
-    </style>
+  <!-- Tailwind (CDN, static classes only) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- React 18 UMD + ReactDOM + Babel Standalone -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    html, body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+    .gradient-13 { background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); }
+    .progress-bar { transition: width 0.35s ease; }
+    .fade-in { animation: fadeIn .3s ease-in both; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+    @media print {
+      body * { visibility: hidden !important; }
+      #printable, #printable * { visibility: visible !important; }
+      #printable { position: absolute; inset: 0; width: 100%; padding: 0 12px; }
+      nav, header, .no-print { display: none !important; }
+    }
+    /* Simple focus ring for accessibility */
+    .focus-ring:focus { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4 md:p-8">
+<body class="bg-slate-50 text-slate-900">
+  <div id="root"></div>
 
-    <div id="app" class="w-full max-w-7xl mx-auto">
-        
-        <!-- Start Screen -->
-        <div id="start-screen" class="screen text-center max-w-2xl mx-auto">
-             <div class="card p-8 md:p-12">
-                <h1 class="text-4xl font-bold">Personal Reality Framework (PRF) Synthesizer</h1>
-                <p class="text-gray-600 mt-4 mb-8">The central hub for analyzing and integrating your personal insights.</p>
-                <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <button id="start-here-btn" class="btn btn-primary px-8 py-3 rounded-lg font-semibold text-lg">Start Here</button>
-                    <a href="https://rmertzman-tech.github.io/Nelson-Mandela/" target="_blank" class="btn btn-secondary px-8 py-3 rounded-lg font-semibold text-lg">View an Example</a>
-                </div>
-            </div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // ---------- Utilities ----------
+    const safeJSON = (s, fallback) => {
+      try { return JSON.parse(s) ?? fallback; } catch { return fallback; }
+    };
+    const nowISO = () => new Date().toISOString();
+    const formatLocal = (iso) => iso ? new Date(iso).toLocaleString() : '';
+    const downloadText = (filename, text) => {
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // ---------- Quick Reference Content ----------
+    const ABCD = [
+      { letter: 'A', title: 'Agency', desc: 'Voice, standing, co-authorship in knowledge-making and procedure.' },
+      { letter: 'B', title: 'Beauty/Awe', desc: 'The dignity and elegance of plurality—when concepts finally fit experience.' },
+      { letter: 'C', title: 'Context', desc: 'Gatekeeping structures, rubrics, and institutional procedures that include or exclude.' },
+      { letter: 'D', title: 'Dynamics', desc: 'Feedback loops (who gets heard) and revision rhythms (audits/change-logs).' }
+    ];
+    const Four = [
+      { key: 'capacity', title: 'CAPACITY', sub: 'Latent Potential', hint: 'People can contribute—but context may mute them.' },
+      { key: 'capability', title: 'CAPABILITY', sub: 'Reliable Function', hint: 'Procedures & skills that consistently surface voices.' },
+      { key: 'constructor', title: 'CONSTRUCTOR', sub: 'Persistent Transformation', hint: 'Routines that repeatedly produce fair outcomes.' },
+      { key: 'meta', title: 'META-CONSTRUCTOR', sub: 'Self-Improvement', hint: 'Audits, change-logs, co-governance to keep improving.' }
+    ];
+
+    // ---------- App ----------
+    function App(){
+      const [started, setStarted] = useState(false);
+      const [user, setUser] = useState({ name:'', email:'', course:'' });
+      const [current, setCurrent] = useState('overview');
+      const [session, setSession] = useState({ id:'', start:'', end:'' });
+
+      // Section data (persisted)
+      const [ejData, setEjData] = useState({ // Epistemic Justice
+        credibilityCue: '',
+        calibratedCue: '',
+        missingConcept: '',
+        conceptJustification: ''
+      });
+      const [pluralData, setPluralData] = useState({ // Pluralism by Design
+        objective: '',
+        trackA_title: '',
+        trackA_criteria: '',
+        trackB_title: '',
+        trackB_criteria: ''
+      });
+      const [repairData, setRepairData] = useState({ // Repair & Recognition (mini-TRC)
+        narration: '',
+        acknowledgement: '',
+        remedyOptions: '',
+        followUp: ''
+      });
+      const [studioData, setStudioData] = useState({ // Studio redesign
+        assessTitle: '',
+        issues: [],
+        adjustments: [],
+        rightOfReply: true,
+        auditPlan: 'Week 6 and Finals Week; change-log posted publicly.',
+        extraNotes: ''
+      });
+      const [practiceData, setPracticeData] = useState({
+        ejPrompt: '', pluralPrompt: '', repairPrompt: ''
+      });
+      const [reflectionData, setReflectionData] = useState({
+        reflection: '',
+        rightOfReplyProtocol: '1) Student appends a 150–250 word statement.\n2) Instructor replies in writing within 7 days.\n3) If unresolved, mini-TRC session scheduled.\n4) Decisions and any rubric changes recorded in change-log.'
+      });
+
+      // Load persisted state
+      useEffect(() => {
+        const saved = safeJSON(localStorage.getItem('part13State'), null);
+        if(saved){
+          setStarted(saved.started ?? false);
+          setUser(saved.user ?? {name:'', email:'', course:''});
+          setCurrent(saved.current ?? 'overview');
+          setSession(saved.session ?? {id:'', start:'', end:''});
+          setEjData(saved.ejData ?? ejData);
+          setPluralData(saved.pluralData ?? pluralData);
+          setRepairData(saved.repairData ?? repairData);
+          setStudioData(saved.studioData ?? studioData);
+          setPracticeData(saved.practiceData ?? practiceData);
+          setReflectionData(saved.reflectionData ?? reflectionData);
+        }
+      }, []);
+
+      // Persist
+      useEffect(() => {
+        localStorage.setItem('part13State', JSON.stringify({
+          started, user, current, session,
+          ejData, pluralData, repairData, studioData, practiceData, reflectionData
+        }));
+      }, [started, user, current, session, ejData, pluralData, repairData, studioData, practiceData, reflectionData]);
+
+      // Start session
+      const startPart = () => {
+        if(!user.name || !user.email || !user.course) return;
+        setStarted(true);
+        setSession({ id: `P13-${Date.now().toString(36).toUpperCase()}`, start: nowISO(), end:'' });
+        setCurrent('overview');
+      };
+
+      // Reset
+      const hardReset = () => {
+        if(confirm('This will clear all saved data for Part 13. Proceed?')){
+          localStorage.removeItem('part13State');
+          window.location.reload();
+        }
+      };
+
+      // Progress computation (simple heuristic)
+      const progress = useMemo(() => {
+        let done = 0, total = 6;
+        if(ejData.calibratedCue && ejData.missingConcept) done++;
+        if(pluralData.objective && pluralData.trackA_title && pluralData.trackB_title) done++;
+        if(repairData.narration && repairData.acknowledgement && repairData.followUp) done++;
+        if(studioData.assessTitle && (studioData.issues.length>0 || studioData.adjustments.length>0)) done++;
+        if(practiceData.ejPrompt && practiceData.pluralPrompt && practiceData.repairPrompt) done++;
+        if(reflectionData.reflection && reflectionData.rightOfReplyProtocol) done++;
+        return Math.round((done/total)*100);
+      }, [ejData, pluralData, repairData, studioData, practiceData, reflectionData]);
+
+      // Report
+      const buildReport = () => {
+        const sep = '────────────────────────────────────────────────';
+        return [
+`PART 13 — Global & Decolonial; Feminist/Critical Race/Indigenous Thought
+Session: ${session.id}
+Started: ${formatLocal(session.start)}
+Generated: ${new Date().toLocaleString()}
+Student: ${user.name} | ${user.email} | ${user.course}
+Progress: ${progress}%`,
+sep,
+'1) EPISTEMIC JUSTICE',
+`Original credibility cue: ${ejData.credibilityCue || '(none)'}
+Calibrated descriptor: ${ejData.calibratedCue || '(none)'}
+Missing concept (coined): ${ejData.missingConcept || '(none)'}
+Concept justification:
+${ejData.conceptJustification || '(none)'}
+`,
+'2) PLURALISM BY DESIGN',
+`Objective: ${pluralData.objective || '(none)'}
+Track A — ${pluralData.trackA_title || 'Untitled'}
+Criteria:
+${pluralData.trackA_criteria || '(none)'}
+Track B — ${pluralData.trackB_title || 'Untitled'}
+Criteria:
+${pluralData.trackB_criteria || '(none)'}
+`,
+'3) REPAIR & RECOGNITION (Mini-TRC)',
+`Narration:
+${repairData.narration || '(none)'}
+Acknowledgement:
+${repairData.acknowledgement || '(none)'}
+Proposed remedies:
+${repairData.remedyOptions || '(none)'}
+Follow-up date or interval: ${repairData.followUp || '(none)'}
+`,
+'4) STUDIO — Assessment Redesign',
+`Assessment: ${studioData.assessTitle || '(none)'}
+Issues detected: ${studioData.issues.join('; ') || '(none)'}
+Adjustments selected: ${studioData.adjustments.join('; ') || '(none)'}
+Right-of-reply: ${studioData.rightOfReply ? 'Enabled' : 'Disabled'}
+Audit plan:
+${studioData.auditPlan || '(none)'}
+Notes:
+${studioData.extraNotes || '(none)'}
+`,
+'5) PRACTICE PROMPTS',
+`Epistemic Justice:
+${practiceData.ejPrompt || '(none)'}
+Pluralism by Design:
+${practiceData.pluralPrompt || '(none)'}
+Repair & Recognition:
+${practiceData.repairPrompt || '(none)'}
+`,
+'6) REFLECTION & PROTOCOL',
+`Reflection:
+${reflectionData.reflection || '(none)'}
+Right-of-Reply Protocol:
+${reflectionData.rightOfReplyProtocol || '(none)'}
+`,
+sep,
+'ABCD Snapshot',
+'A: Agency (voice, standing) — present via right-of-reply & co-authorship',
+'B: Beauty/Awe (plural dignity) — present via concept-coining & dual tracks',
+'C: Context (gates, rubrics) — present via calibrated cues & constructors',
+'D: Dynamics (feedbacks, audits) — present via TRC follow-ups & change-logs',
+sep
+        ].join('\n');
+      };
+
+      const downloadReport = () => {
+        const text = buildReport();
+        downloadText(`Part13_Report_${user.name.replace(/\s+/g,'_') || 'student'}.txt`, text);
+      };
+
+      // Printable view
+      const Printable = () => (
+        <div id="printable" className="bg-white p-6">
+          <h1 className="text-2xl font-bold mb-2">Part 13 — Completion Report</h1>
+          <p className="text-sm text-slate-600 mb-4">
+            {user.name} • {user.email} • {user.course} • Session {session.id} • {formatLocal(session.start)}
+          </p>
+          <pre className="whitespace-pre-wrap text-sm">{buildReport()}</pre>
         </div>
+      );
 
-        <!-- Explanation Screen -->
-        <div id="explanation-screen" class="screen hidden text-left max-w-3xl mx-auto">
-            <div class="card p-8 md:p-12">
-                <h2 class="text-3xl font-bold text-center mb-6">Synthesize Your Framework</h2>
-                <p class="text-gray-700 mb-4">Welcome to the Synthesizer. This is where you bring together the insights you've gathered from all six explorer modules.</p>
-                
-                <div class="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-800 p-4 rounded-md my-6">
-                    <h3 class="font-bold">How to Use This Tool (For Your Own Work):</h3>
-                    <ul class="list-disc list-inside mt-2 space-y-1">
-                        <li>Use the **"Load Data from Explorers"** button for a quick way to import your saved work.</li>
-                        <li>Alternatively, you can **drag-and-drop your .txt files** from each explorer into the upload boxes.</li>
-                        <li>The review boxes are editable. You can use the **expand icon** (⤢) for a focused view of your data.</li>
-                        <li>Use the **"Begin Guided Synthesis"** feature to have a step-by-step conversation with the AI Tutor to help you synthesize your framework.</li>
-                        <li>**Download your complete PRF** as a single file to save your work.</li>
+      // ----- UI Shell -----
+      if(!started){
+        return (
+          <div className="min-h-screen gradient-13 text-white">
+            <div className="max-w-5xl mx-auto px-4 py-12">
+              <div className="bg-white/10 backdrop-blur rounded-2xl p-8 shadow-xl">
+                <h1 className="text-3xl font-extrabold">Part 13 — Global & Decolonial; Feminist/Critical Race/Indigenous Thought</h1>
+                <p className="mt-2 text-white/90">Build three capabilities: <span className="font-semibold">Epistemic Justice</span>, <span className="font-semibold">Pluralism by Design</span>, and <span className="font-semibold">Repair & Recognition</span>. Apply ABCD + Four-Levels to redesign an assessment for fairness.</p>
+
+                <div className="mt-8 grid md:grid-cols-3 gap-4">
+                  <div className="bg-white/20 rounded-xl p-4">
+                    <h3 className="font-semibold">ABCD Lens</h3>
+                    <ul className="mt-2 text-sm">
+                      <li>• A: Agency (voice/standing)</li>
+                      <li>• B: Beauty/Awe (plural dignity)</li>
+                      <li>• C: Context (gates & rubrics)</li>
+                      <li>• D: Dynamics (feedbacks/audits)</li>
                     </ul>
+                  </div>
+                  <div className="bg-white/20 rounded-xl p-4">
+                    <h3 className="font-semibold">Four Levels</h3>
+                    <ul className="mt-2 text-sm">
+                      <li>• Capacity → Capability</li>
+                      <li>• Constructor routines</li>
+                      <li>• Meta-Constructor audits</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white/20 rounded-xl p-4">
+                    <h3 className="font-semibold">Deliverables</h3>
+                    <ul className="mt-2 text-sm">
+                      <li>• Calibrated credibility descriptors</li>
+                      <li>• Dual-track rubric</li>
+                      <li>• Mini-TRC protocol</li>
+                      <li>• Downloadable report</li>
+                    </ul>
+                  </div>
                 </div>
 
-                <div class="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-md my-6">
-                    <h3 class="font-bold">Using the Demo Case Studies</h3>
-                    <p class="mt-2">To see how the AI Tutor works with a completed example, you can load one of our demo case studies. The full "Demo Library" with many more examples is available on the main <a href="https://rmertzman-tech.github.io/PRF-PROJECT-HUB/" target="_blank" class="underline font-semibold">Project Hub Page</a>.</p>
-                    <p class="mt-2 font-semibold">Workflow to analyze a demo:</p>
-                    <ol class="list-decimal list-inside mt-1">
-                        <li>Visit a demo page from the Hub.</li>
-                        <li>Click the "Load this Demo into Synthesizer" button on that page.</li>
-                        <li>Return here and use the "Load Data from Explorers" button to import the demo data.</li>
-                    </ol>
+                <div className="mt-8 bg-white rounded-xl p-6 text-slate-900">
+                  <h2 className="text-xl font-bold mb-4">Before we begin</h2>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Full name</label>
+                      <input className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
+                        value={user.name} onChange={e=>setUser({...user, name:e.target.value})} placeholder="Your name"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Email</label>
+                      <input className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
+                        value={user.email} onChange={e=>setUser({...user, email:e.target.value})} placeholder="your@email.edu"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Course / Section</label>
+                      <input className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
+                        value={user.course} onChange={e=>setUser({...user, course:e.target.value})} placeholder="e.g., PHI 101 - 02"/>
+                    </div>
+                  </div>
+                  <button onClick={startPart}
+                    className="mt-6 inline-flex items-center bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-lg font-semibold focus-ring">
+                    Begin Part 13 →
+                  </button>
                 </div>
 
-                <div class="text-center">
-                    <button id="continue-to-app-btn" class="btn btn-primary px-8 py-3 rounded-lg font-semibold text-lg">Continue to Synthesizer</button>
-                </div>
+                <p className="mt-4 text-sm text-white/80">Your progress saves automatically in this browser.</p>
+              </div>
             </div>
+          </div>
+        );
+      }
+
+      const sections = [
+        { id:'overview', label:'Overview' },
+        { id:'ej', label:'Epistemic Justice' },
+        { id:'plural', label:'Pluralism by Design' },
+        { id:'repair', label:'Repair & Recognition' },
+        { id:'studio', label:'Studio: Assessment Redesign' },
+        { id:'example', label:'Worked Example' },
+        { id:'practice', label:'Practice Prompts' },
+        { id:'reflect', label:'Reflection & Report' }
+      ];
+
+      return (
+        <div className="min-h-screen">
+          {/* Header */}
+          <header className="gradient-13 text-white shadow">
+            <div className="max-w-6xl mx-auto px-4 py-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold">Part 13 — Global & Decolonial; Feminist/Critical Race/Indigenous</h1>
+                  <p className="text-white/90">Session <span className="font-semibold">{session.id}</span> • {user.name} • {user.course}</p>
+                  <div className="mt-4 bg-white/25 rounded-full h-2 overflow-hidden">
+                    <div className="progress-bar bg-white h-2" style={{width: `${progress}%`}}></div>
+                  </div>
+                  <p className="text-sm text-white/90 mt-1">{progress}% complete</p>
+                </div>
+                <div className="flex gap-2 no-print">
+                  <button onClick={downloadReport} className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg font-semibold">Download Report</button>
+                  <button onClick={() => window.print()} className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg font-semibold">Print</button>
+                  <button onClick={hardReset} className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg font-semibold">Reset</button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Nav */}
+          <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 no-print">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex overflow-x-auto gap-2 py-3">
+                {sections.map(s=>(
+                  <button key={s.id}
+                    onClick={()=>setCurrent(s.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold border ${current===s.id ? 'bg-violet-100 text-violet-700 border-violet-200' : 'bg-white hover:bg-slate-50 border-slate-200'}`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </nav>
+
+          {/* Quick Reference */}
+          <div className="max-w-6xl mx-auto px-4 pt-4 no-print">
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">ABCD Lens</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ABCD.map(x=>(
+                      <div key={x.letter} className="bg-slate-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-violet-700 font-extrabold">{x.letter}</span>
+                          <span className="font-semibold">{x.title}</span>
+                        </div>
+                        <p className="text-sm text-slate-600 mt-1">{x.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">Four Levels</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Four.map(f=>(
+                      <div key={f.key} className="bg-slate-50 rounded-lg p-3">
+                        <div className="font-semibold">{f.title}</div>
+                        <div className="text-xs italic text-violet-700">{f.sub}</div>
+                        <p className="text-sm text-slate-600 mt-1">{f.hint}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            {current==='overview' && <Overview />}
+            {current==='ej' && <EpistemicJustice data={ejData} setData={setEjData} />}
+            {current==='plural' && <Pluralism data={pluralData} setData={setPluralData} />}
+            {current==='repair' && <Repair data={repairData} setData={setRepairData} />}
+            {current==='studio' && <Studio data={studioData} setData={setStudioData} />}
+            {current==='example' && <WorkedExample />}
+            {current==='practice' && <Practice data={practiceData} setData={setPracticeData} />}
+            {current==='reflect' && <Reflect data={reflectionData} setData={setReflectionData} user={user} session={session} />}
+          </main>
+
+          {/* Printable container (hidden until print) */}
+          <Printable />
         </div>
+      );
+    }
 
-        <!-- Main App Workspace -->
-        <div id="main-app" class="hidden">
-            <div class="text-left mb-6">
-                 <button id="back-to-start-btn" class="font-semibold text-indigo-600 hover:text-indigo-800">← Back to Start</button>
+    // ---------- Sections ----------
+    const Card = ({title, subtitle, children}) => (
+      <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6 fade-in">
+        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+        {subtitle && <p className="text-slate-600 mb-4">{subtitle}</p>}
+        {children}
+      </div>
+    );
+
+    function Overview(){
+      return (
+        <>
+          <Card title="Why Part 13, here?" subtitle="From better methods to fair access to method.">
+            <p className="text-slate-700">
+              You will design procedures that surface multiple standpoints without tokenism, repair misrecognition, and keep fairness improving over time. You’ll ship three concrete constructors: calibrated credibility descriptors, a dual-track rubric, and a mini-TRC protocol—with ABCD + Four-Levels embedded.
+            </p>
+            <ul className="mt-4 list-disc list-inside text-slate-700">
+              <li><span className="font-semibold">Epistemic Justice:</span> detect and repair testimonial/hermeneutical injustice.</li>
+              <li><span className="font-semibold">Pluralism by Design:</span> structure multi-path evidence without lowering standards.</li>
+              <li><span className="font-semibold">Repair & Recognition:</span> couple truth with material follow-through and audits.</li>
+            </ul>
+          </Card>
+          <Card title="What you’ll produce">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold">Credibility Calibration</h3>
+                <p className="text-sm text-slate-700">Rewrite hidden cues as transparent, fair descriptors; add concept-coining option.</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold">Dual-Track Rubric</h3>
+                <p className="text-sm text-slate-700">Two valid evidence paths for the same objectives (textual & relational/community).</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold">Mini-TRC Protocol</h3>
+                <p className="text-sm text-slate-700">Narration → acknowledgement → remedies → follow-up; public change-log.</p>
+              </div>
             </div>
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h1 id="main-title" class="text-4xl font-bold">Personal Reality Framework (PRF) Synthesizer</h1>
-                <p class="text-gray-600 mt-2">Import your saved summaries from the explorers to begin.</p>
+          </Card>
+        </>
+      );
+    }
+
+    function EpistemicJustice({data, setData}){
+      return (
+        <>
+          <Card title="Capability 1 — Epistemic Justice" subtitle="Standing, legibility, and the right to be understood.">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold">1) Calibrate a credibility cue</h4>
+                <p className="text-sm text-slate-600 mb-2">Identify a status-coded cue and rewrite it as a fair descriptor.</p>
+                <label className="block text-sm font-medium mb-1">Original (hidden cue)</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-3" rows="3"
+                  value={data.credibilityCue} onChange={e=>setData({...data, credibilityCue:e.target.value})}
+                  placeholder='e.g., "Professional tone" (implicitly penalizes dialects/accents)'></textarea>
+                <label className="block text-sm font-medium mb-1">Calibrated descriptor</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="3"
+                  value={data.calibratedCue} onChange={e=>setData({...data, calibratedCue:e.target.value})}
+                  placeholder='e.g., "Reasons are organized and claims are supported by evidence sources appropriate to the chosen path."'></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">2) Coin a missing concept</h4>
+                <p className="text-sm text-slate-600 mb-2">Name an experience your class can’t yet articulate; justify briefly.</p>
+                <label className="block text-sm font-medium mb-1">New concept (term)</label>
+                <input className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-3"
+                  value={data.missingConcept} onChange={e=>setData({...data, missingConcept:e.target.value})}
+                  placeholder="e.g., Recognition-lag" />
+                <label className="block text-sm font-medium mb-1">Justification (100–150 words)</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="6"
+                  value={data.conceptJustification} onChange={e=>setData({...data, conceptJustification:e.target.value})}
+                  placeholder="Why your term is needed; how it fits course concepts; an example."></textarea>
+              </div>
+            </div>
+          </Card>
+        </>
+      );
+    }
+
+    function Pluralism({data, setData}){
+      return (
+        <>
+          <Card title="Capability 2 — Pluralism by Design" subtitle="Multiple evidence paths for the same learning objective.">
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Shared Learning Objective</label>
+              <input className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                value={data.objective} onChange={e=>setData({...data, objective:e.target.value})}
+                placeholder="e.g., Demonstrate understanding of argument, evidence, and counter-argument on topic X." />
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold">Track A (Textual/Analytic)</h4>
+                <input className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-2"
+                  value={data.trackA_title} onChange={e=>setData({...data, trackA_title:e.target.value})}
+                  placeholder="e.g., Close Reading & Analytic Essay" />
+                <label className="block text-sm font-medium mb-1">Criteria</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="6"
+                  value={data.trackA_criteria} onChange={e=>setData({...data, trackA_criteria:e.target.value})}
+                  placeholder="- Accurate exposition of primary text
+- Identify argument & counter-argument
+- Evaluate evidence quality
+- Engage one scholarly interlocutor"></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">Track B (Relational/Community)</h4>
+                <input className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-2"
+                  value={data.trackB_title} onChange={e=>setData({...data, trackB_title:e.target.value})}
+                  placeholder="e.g., Interview + Analytic Memo" />
+                <label className="block text-sm font-medium mb-1">Criteria</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="6"
+                  value={data.trackB_criteria} onChange={e=>setData({...data, trackB_criteria:e.target.value})}
+                  placeholder="- Consent + ethical protocol
+- Transcript or detailed field notes
+- Thematic coding linked to concepts
+- Analytic memo relating findings to course ideas"></textarea>
+              </div>
             </div>
 
-            <!-- Demo Status Banner -->
-            <div id="demo-status-banner" class="hidden card bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 text-center mb-6">
-                <p>You are currently viewing the interactive demo for: <strong id="demo-name-display"></strong>. Any edits or new file uploads will clear this demo.</p>
-            </div>
-
-            <!-- Main Workspace -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Left Column: File Uploads -->
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold mb-4">1. Import Your Data</h2>
-                        <button id="load-data-btn" class="btn btn-primary w-full py-3 mb-4 rounded-lg font-semibold">Load Data from Explorers</button>
-                        <p class="text-center text-gray-500 text-sm mb-4">Or upload files manually below</p>
-                        <div class="space-y-4">
-                            <div id="beliefs-upload-box" class="upload-box"><button id="beliefs-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Beliefs</p><input type="file" id="beliefs-file-input" class="hidden" accept=".txt"></div>
-                            <div id="rules-upload-box" class="upload-box"><button id="rules-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Rules</p><input type="file" id="rules-file-input" class="hidden" accept=".txt"></div>
-                            <div id="ontology-upload-box" class="upload-box"><button id="ontology-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Ontology</p><input type="file" id="ontology-file-input" class="hidden" accept=".txt"></div>
-                            <div id="authenticity-upload-box" class="upload-box"><button id="authenticity-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Authenticity</p><input type="file" id="authenticity-file-input" class="hidden" accept=".txt"></div>
-                            <div id="assembly_history-upload-box" class="upload-box"><button id="assembly_history-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Assembly History</p><input type="file" id="assembly_history-file-input" class="hidden" accept=".txt"></div>
-                            <div id="future_pull-upload-box" class="upload-box"><button id="future_pull-clear-btn" class="clear-btn hidden">&times;</button><p class="font-semibold text-gray-700">Future Pull</p><input type="file" id="future_pull-file-input" class="hidden" accept=".txt"></div>
-                        </div>
-                    </div>
+            <div className="mt-6 bg-slate-50 rounded-lg p-4">
+              <h4 className="font-semibold">Preview — Dual-Track Rubric Excerpt</h4>
+              <p className="text-sm text-slate-700 mt-1">
+                <span className="font-semibold">Objective:</span> {data.objective || '—'}
+              </p>
+              <div className="grid md:grid-cols-2 gap-4 mt-3">
+                <div className="bg-white border border-slate-200 rounded-lg p-3">
+                  <div className="font-semibold">{data.trackA_title || 'Track A'}</div>
+                  <pre className="whitespace-pre-wrap text-sm mt-2">{data.trackA_criteria || '—'}</pre>
                 </div>
-
-                <!-- Right Column: Synthesis & Analysis -->
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold mb-4">2. Review & Edit Your Data</h2>
-                        <div id="review-grid" class="review-grid p-2 bg-gray-50 rounded-lg">
-                             <!-- Text areas will be dynamically created here -->
-                        </div>
-                    </div>
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold mb-4">3. Guided Synthesis</h2>
-                        
-                        <div id="chat-container" class="w-full h-96 flex flex-col border bg-white rounded-lg p-4">
-                            <div id="chat-history" class="flex-1 overflow-y-auto mb-4 flex flex-col">
-                                <!-- Chat messages will appear here -->
-                            </div>
-                            <div id="chat-input-area" class="flex items-center gap-2">
-                                <textarea id="chat-input" class="w-full border border-gray-300 rounded-lg p-2 resize-none" placeholder="Type your response..." rows="2" disabled></textarea>
-                                <button id="chat-send-btn" class="btn btn-primary px-6 py-2 rounded-lg font-semibold" disabled>Send</button>
-                            </div>
-                        </div>
-
-                        <div id="final-analysis-section" class="hidden mt-6">
-                             <button id="generate-analysis-btn" class="btn btn-primary w-full py-3 rounded-lg font-semibold flex items-center justify-center">
-                                <span id="analysis-btn-text">Generate Final AI Analysis</span>
-                                <div id="analysis-spinner" class="spinner hidden"></div>
-                            </button>
-                            <div id="final-analysis-display" class="hidden mt-4 w-full min-h-[100px] p-3 bg-gray-50 border rounded-lg whitespace-pre-wrap"></div>
-                        </div>
-                        
-                        <div class="mt-6 text-right">
-                            <button id="download-prf-btn" class="btn btn-primary px-8 py-3 rounded-lg font-semibold">Download Full PRF</button>
-                        </div>
-                    </div>
+                <div className="bg-white border border-slate-200 rounded-lg p-3">
+                  <div className="font-semibold">{data.trackB_title || 'Track B'}</div>
+                  <pre className="whitespace-pre-wrap text-sm mt-2">{data.trackB_criteria || '—'}</pre>
                 </div>
+              </div>
             </div>
-        </div>
-    </div>
+          </Card>
+        </>
+      );
+    }
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Screen Elements ---
-            const startScreen = document.getElementById('start-screen');
-            const explanationScreen = document.getElementById('explanation-screen');
-            const mainApp = document.getElementById('main-app');
-            const mainTitle = document.getElementById('main-title');
-            const demoStatusBanner = document.getElementById('demo-status-banner');
-            const demoNameDisplay = document.getElementById('demo-name-display');
-            
-            // --- Button Elements ---
-            const startHereBtn = document.getElementById('start-here-btn');
-            const continueToAppBtn = document.getElementById('continue-to-app-btn');
-            const backToStartBtn = document.getElementById('back-to-start-btn');
-            const loadDataBtn = document.getElementById('load-data-btn');
-            const generateAnalysisBtn = document.getElementById('generate-analysis-btn');
+    function Repair({data, setData}){
+      return (
+        <>
+          <Card title="Capability 3 — Repair & Recognition" subtitle="Truth + acknowledgement + material follow-through.">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold">Mini-TRC Inputs</h4>
+                <label className="block text-sm font-medium mb-1">Narration (what happened)</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-3" rows="5"
+                  value={data.narration} onChange={e=>setData({...data, narration:e.target.value})}></textarea>
+                <label className="block text-sm font-medium mb-1">Acknowledgement (what is recognized)</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="5"
+                  value={data.acknowledgement} onChange={e=>setData({...data, acknowledgement:e.target.value})}></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">Remedies & Follow-up</h4>
+                <label className="block text-sm font-medium mb-1">Proposed material remedies / adjustments</label>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mb-3" rows="5"
+                  value={data.remedyOptions} onChange={e=>setData({...data, remedyOptions:e.target.value})}></textarea>
+                <label className="block text-sm font-medium mb-1">Follow-up date or interval</label>
+                <input className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                  placeholder="e.g., Review in 14 days (MM/DD) with public note."
+                  value={data.followUp} onChange={e=>setData({...data, followUp:e.target.value})}/>
+              </div>
+            </div>
 
+            <div className="mt-6 bg-slate-50 rounded-lg p-4">
+              <h4 className="font-semibold">Protocol Preview</h4>
+              <ol className="list-decimal list-inside text-sm text-slate-700 space-y-1 mt-2">
+                <li><span className="font-semibold">Narration:</span> {(data.narration || '—')}</li>
+                <li><span className="font-semibold">Acknowledgement:</span> {(data.acknowledgement || '—')}</li>
+                <li><span className="font-semibold">Remedies:</span> {(data.remedyOptions || '—')}</li>
+                <li><span className="font-semibold">Follow-up:</span> {(data.followUp || '—')}</li>
+              </ol>
+            </div>
+          </Card>
+        </>
+      );
+    }
 
-            // --- Main App Elements ---
-            const reviewGrid = document.getElementById('review-grid');
-            const downloadPrfBtn = document.getElementById('download-prf-btn');
-            const finalAnalysisSection = document.getElementById('final-analysis-section');
-            const finalAnalysisDisplay = document.getElementById('final-analysis-display');
-            const analysisBtnText = document.getElementById('analysis-btn-text');
-            const analysisSpinner = document.getElementById('analysis-spinner');
-            
-            // --- Chat Elements ---
-            const chatHistory = document.getElementById('chat-history');
-            const chatInput = document.getElementById('chat-input');
-            const chatSendBtn = document.getElementById('chat-send-btn');
+    function Studio({data, setData}){
+      const issueList = [
+        'Hidden credibility cues',
+        'Insider fluency rewarded',
+        'Single evidence path only',
+        'No right-of-reply',
+        'No audit/change-log',
+        'No community/relational option'
+      ];
+      const adjList = [
+        'Calibrated descriptors',
+        'Dual-track rubric',
+        'Concept-coining option',
+        'Right-of-reply',
+        'Mini-TRC protocol',
+        'Public change-log with audits'
+      ];
 
-            const DATA_KEYS = {
-                beliefs: 'prf_beliefs_data',
-                rules: 'prf_rules_data',
-                ontology: 'prf_ontology_data',
-                authenticity: 'prf_authenticity_data',
-                assembly_history: 'prf_assembly_history_data',
-                future_pull: 'prf_future_pull_data'
-            };
+      const toggle = (arr, setArr, val) => {
+        if(arr.includes(val)) setArr(arr.filter(x=>x!==val)); else setArr([...arr, val]);
+      };
 
-            const CATEGORIES = Object.keys(DATA_KEYS);
-            const DEMO_NAME_KEY = 'prf_current_demo_name';
+      return (
+        <>
+          <Card title="Studio — Redesign an Assessment for Fairness" subtitle="Assemble your constructors (rubric + protocol) for immediate use.">
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Assessment title</label>
+              <input className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                value={data.assessTitle} onChange={e=>setData({...data, assessTitle:e.target.value})}
+                placeholder="e.g., Ethical Analysis Project" />
+            </div>
 
-            // --- Screen Navigation ---
-            startHereBtn.addEventListener('click', () => { startScreen.classList.add('hidden'); explanationScreen.classList.remove('hidden'); });
-            continueToAppBtn.addEventListener('click', () => { explanationScreen.classList.add('hidden'); mainApp.classList.remove('hidden'); mainApp.classList.add('screen'); });
-            backToStartBtn.addEventListener('click', () => { mainApp.classList.add('hidden'); startScreen.classList.remove('hidden'); });
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold">Issues Detected</h4>
+                <div className="mt-2 grid grid-cols-1 gap-2">
+                  {issueList.map(it=>(
+                    <label key={it} className="inline-flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="w-4 h-4"
+                        checked={data.issues.includes(it)}
+                        onChange={()=> setData({...data, issues: data.issues.includes(it) ? data.issues.filter(x=>x!==it) : [...data.issues, it]}) }/>
+                      {it}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold">Adjustments to Implement</h4>
+                <div className="mt-2 grid grid-cols-1 gap-2">
+                  {adjList.map(it=>(
+                    <label key={it} className="inline-flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="w-4 h-4"
+                        checked={data.adjustments.includes(it)}
+                        onChange={()=> setData({...data, adjustments: data.adjustments.includes(it) ? data.adjustments.filter(x=>x!==it) : [...data.adjustments, it]}) }/>
+                      {it}
+                    </label>
+                  ))}
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm mt-3">
+                  <input type="checkbox" className="w-4 h-4"
+                    checked={data.rightOfReply}
+                    onChange={e=>setData({...data, rightOfReply: e.target.checked})}/>
+                  Enable right-of-reply
+                </label>
+              </div>
+            </div>
 
-            function hideDemoBanner() {
-                demoStatusBanner.classList.add('hidden');
-            }
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">Audit plan</label>
+              <input className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                value={data.auditPlan} onChange={e=>setData({...data, auditPlan:e.target.value})}/>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">Notes</label>
+              <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2" rows="4"
+                value={data.extraNotes} onChange={e=>setData({...data, extraNotes:e.target.value})}></textarea>
+            </div>
 
-            // --- Dynamic Creation of Review Boxes ---
-            CATEGORIES.forEach(key => {
-                const formattedName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const container = document.createElement('div');
-                container.className = 'review-box-container';
-                container.dataset.key = key;
-                const textarea = document.createElement('textarea');
-                textarea.id = `${key}-display`;
-                textarea.className = 'w-full h-full p-2 border rounded-md bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none';
-                textarea.placeholder = `${formattedName} data...`;
-                container.appendChild(textarea);
-                const expandBtn = document.createElement('button');
-                expandBtn.className = 'expand-btn';
-                expandBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg>`;
-                expandBtn.title = `Focus on ${formattedName}`;
-                container.appendChild(expandBtn);
-                reviewGrid.appendChild(container);
-                expandBtn.addEventListener('click', () => {
-                    const isFocused = container.classList.contains('is-focused');
-                    reviewGrid.querySelectorAll('.review-box-container').forEach(c => c.classList.remove('is-focused'));
-                    if (isFocused) {
-                        reviewGrid.classList.remove('focused');
-                        expandBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg>`;
-                        expandBtn.title = `Focus on ${formattedName}`;
-                    } else {
-                        reviewGrid.classList.add('focused');
-                        container.classList.add('is-focused');
-                        expandBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fullscreen-exit" viewBox="0 0 16 16"><path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zM5 11h4a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1zm11-5.5a.5.5 0 0 1-1 0V1.5H11.5a.5.5 0 0 1 0-1H15a.5.5 0 0 1 .5.5v4zM11 11h3.5a.5.5 0 0 1 0 1H11a.5.5 0 0 1 0-1z"/></svg>`;
-                        expandBtn.title = `Return to Grid View`;
-                    }
-                });
-                textarea.addEventListener('input', hideDemoBanner);
-            });
+            <div className="mt-6 bg-slate-50 rounded-lg p-4">
+              <h4 className="font-semibold">Constructor Preview</h4>
+              <p className="text-sm mt-1"><span className="font-semibold">Assessment:</span> {data.assessTitle || '—'}</p>
+              <p className="text-sm mt-1"><span className="font-semibold">Issues:</span> {data.issues.join('; ') || '—'}</p>
+              <p className="text-sm mt-1"><span className="font-semibold">Adjustments:</span> {data.adjustments.join('; ') || '—'}</p>
+              <p className="text-sm mt-1"><span className="font-semibold">Right-of-reply:</span> {data.rightOfReply ? 'Enabled' : 'Disabled'}</p>
+              <p className="text-sm mt-1"><span className="font-semibold">Audit plan:</span> {data.auditPlan || '—'}</p>
+              <p className="text-sm mt-1"><span className="font-semibold">Notes:</span> {data.extraNotes || '—'}</p>
+            </div>
+          </Card>
+        </>
+      );
+    }
 
-            // --- File Handling Logic ---
-            CATEGORIES.forEach(key => {
-                const uploadBox = document.getElementById(`${key}-upload-box`);
-                const fileInput = document.getElementById(`${key}-file-input`);
-                const clearBtn = document.getElementById(`${key}-clear-btn`);
-                const display = document.getElementById(`${key}-display`);
-                const handleFile = (file) => {
-                    hideDemoBanner();
-                    if (file && file.type === 'text/plain') {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const newContent = e.target.result;
-                            display.value = display.value.trim().length > 0 ? `${display.value}\n\n----------\n(New File: ${file.name})\n----------\n\n${newContent}` : newContent;
-                            uploadBox.classList.add('filled');
-                            clearBtn.classList.remove('hidden');
-                        };
-                        reader.readAsText(file);
-                    } else { alert('Please upload a valid .txt file.'); }
-                };
-                uploadBox.addEventListener('click', (e) => { if (e.target !== clearBtn) fileInput.click(); });
-                fileInput.addEventListener('change', (event) => handleFile(event.target.files[0], key));
-                uploadBox.addEventListener('dragover', (event) => { event.preventDefault(); uploadBox.classList.add('drag-over'); });
-                uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('drag-over'));
-                uploadBox.addEventListener('drop', (event) => { event.preventDefault(); uploadBox.classList.remove('drag-over'); handleFile(event.dataTransfer.files[0], key); });
-                clearBtn.addEventListener('click', () => {
-                    hideDemoBanner();
-                    display.value = '';
-                    uploadBox.classList.remove('filled');
-                    clearBtn.classList.add('hidden');
-                    fileInput.value = ''; 
-                });
-            });
-            
-            // --- Load Data from LocalStorage ---
-            loadDataBtn.addEventListener('click', () => {
-                let loadedCount = 0;
-                const demoName = localStorage.getItem(DEMO_NAME_KEY);
-                if (demoName) {
-                    demoNameDisplay.textContent = demoName;
-                    demoStatusBanner.classList.remove('hidden');
-                    localStorage.removeItem(DEMO_NAME_KEY);
-                } else { hideDemoBanner(); }
-                CATEGORIES.forEach(key => {
-                    const savedData = localStorage.getItem(DATA_KEYS[key]);
-                    if (savedData) {
-                        const display = document.getElementById(`${key}-display`);
-                        display.value = savedData;
-                        document.getElementById(`${key}-upload-box`).classList.add('filled');
-                        document.getElementById(`${key}-clear-btn`).classList.remove('hidden');
-                        loadedCount++;
-                    }
-                });
-                if (loadedCount > 0) { alert(`${loadedCount} data source(s) loaded successfully.`); } 
-                else { alert('No saved data found from the explorer apps in this browser.'); }
-            });
+    function WorkedExample(){
+      return (
+        <>
+          <Card title="Worked Example — Dual-Track Assessment" subtitle="Two paths, one set of learning objectives.">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <h4 className="font-semibold">Track A — Close Reading & Analytic Essay</h4>
+                <ul className="list-disc list-inside text-sm text-slate-700 mt-2 space-y-1">
+                  <li>Accurate exposition of a primary text on othering/recognition.</li>
+                  <li>State argument & counter-argument; evaluate evidence.</li>
+                  <li>Engage with one scholarly interlocutor.</li>
+                  <li>Formal citations; clarity and structure.</li>
+                </ul>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <h4 className="font-semibold">Track B — Interview + Analytic Memo</h4>
+                <ul className="list-disc list-inside text-sm text-slate-700 mt-2 space-y-1">
+                  <li>Consent & ethical protocol; interview or field notes.</li>
+                  <li>Thematic coding linked to course concepts.</li>
+                  <li>Memo relating findings to arguments/evidence standards.</li>
+                  <li>Right-of-reply available; mini-TRC for disputes.</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-slate-700 mt-4">
+              Both tracks meet the same objective, just via different evidence routes. The constructor (rubric) encodes fairness; the meta-constructor (audit + change-log) keeps it improving.
+            </p>
+          </Card>
+        </>
+      );
+    }
 
-            // --- Guided Synthesis (Chat) Logic ---
-            let conversationHistory = [];
-            let currentStep = 0;
-            const synthesisSteps = [ 'start', 'beliefs', 'rules', 'ontology', 'authenticity', 'assembly_history', 'future_pull', 'end' ];
+    function Practice({data, setData}){
+      return (
+        <>
+          <Card title="Short Practice Prompts" subtitle="Compact exercises to finalize your constructors.">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="font-semibold">Epistemic Justice (100–150 words)</h4>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-2" rows="8"
+                  value={data.ejPrompt} onChange={e=>setData({...data, ejPrompt:e.target.value})}
+                  placeholder="Identify one status cue and show the calibrated descriptor that preserves rigor without penalizing dialect/register."></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">Pluralism by Design (100–150 words)</h4>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-2" rows="8"
+                  value={data.pluralPrompt} onChange={e=>setData({...data, pluralPrompt:e.target.value})}
+                  placeholder="Specify two evidence paths for the same objective; justify their equivalence of rigor."></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">Repair & Recognition (8–10 lines)</h4>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-2" rows="8"
+                  value={data.repairPrompt} onChange={e=>setData({...data, repairPrompt:e.target.value})}
+                  placeholder="Draft a mini-TRC protocol with a clear follow-up date and public change-log note."></textarea>
+              </div>
+            </div>
+          </Card>
+        </>
+      );
+    }
 
-            function addMessage(text, sender) {
-                const messageDiv = document.createElement('div');
-                const role = (sender === 'user') ? 'user' : 'model';
-                messageDiv.className = `chat-message ${sender}-message`;
-                messageDiv.textContent = text;
-                chatHistory.appendChild(messageDiv);
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-                conversationHistory.push({ role, parts: [{ text }] });
-            }
-            
-            function constructPrompt(step, fullHistoryText) {
-                const currentModule = synthesisSteps[step];
-                const previousModule = synthesisSteps[step - 1];
-                let allData = '';
-                CATEGORIES.forEach(key => {
-                    const formattedName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    allData += `--- ${formattedName} ---\n${document.getElementById(`${key}-display`).value || 'No data provided.'}\n\n`;
-                });
+    function Reflect({data, setData, user, session}){
+      return (
+        <>
+          <Card title="Reflection & Right-of-Reply Protocol" subtitle="Close your build; prepare to ship.">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold">Reflection (200–300 words)</h4>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-2" rows="10"
+                  value={data.reflection} onChange={e=>setData({...data, reflection:e.target.value})}
+                  placeholder="What changed in your view of evidence? Which constructor you built will still function next term? How will you audit/revise it?"></textarea>
+              </div>
+              <div>
+                <h4 className="font-semibold">Right-of-Reply Protocol (editable)</h4>
+                <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-2" rows="10"
+                  value={data.rightOfReplyProtocol} onChange={e=>setData({...data, rightOfReplyProtocol:e.target.value})}></textarea>
+                <p className="text-xs text-slate-600 mt-2">Tip: Keep response windows concrete (e.g., “7 days”) and publish a monthly change-log.</p>
+              </div>
+            </div>
+            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <p className="text-sm text-slate-700">
+                When you’re ready, use the top-right buttons to <span className="font-semibold">Download Report</span> or <span className="font-semibold">Print</span>. Your session ID is <span className="font-semibold">{session.id}</span>.
+              </p>
+            </div>
+          </Card>
+        </>
+      );
+    }
 
-                if (step === 1) { // First step after introduction
-                    return `You are an insightful and supportive philosophy tutor specializing in a framework that analyzes personal reality through Beliefs, Rules, Ontology, Authenticity, Assembly History, and Future Pull. Your goal is to help a student synthesize these components through a step-by-step conversation.
-                    
-                    **Your Task:** Begin the conversation by asking an insightful, open-ended question about their **Beliefs**. Your question should encourage them to identify the core of their belief system based on the text they provided.
-                    
-                    Here is all of the student's data for your reference:\n${allData}`;
-                } else {
-                     return `You are an insightful and supportive philosophy tutor continuing a guided synthesis conversation with a student about their Personal Reality Framework (PRF).
-                    
-                    **Conversation History So Far:**
-                    ${fullHistoryText}
-                    
-                    **Your Task:** Your next step is to guide the student to connect their reflections on **${previousModule.replace(/_/g, ' ')}** with their reflections on **${currentModule.replace(/_/g, ' ')}**.
-                    
-                    Please generate a response that does the following:
-                    1.  **Acknowledge and Validate:** Briefly and positively acknowledge the student's previous response.
-                    2.  **Synthesize and Connect:** Analyze the student's full data, find an interesting connection or a potential tension between the '${previousModule}' and '${currentModule}' sections.
-                    3.  **Ask a Probing Question:** Formulate an insightful, open-ended question that encourages the student to explore this connection or tension. Your question should prompt critical thinking, not a simple yes/no answer.
-                    
-                    Keep your tone encouraging and conversational.
-                    
-                    Here is all of the student's data for your reference:\n${allData}`;
-                }
-            }
-            
-            async function getAiResponse() {
-                chatInput.disabled = true;
-                chatSendBtn.disabled = true;
-                const thinkingMsg = document.createElement('div');
-                thinkingMsg.className = 'chat-message ai-message';
-                thinkingMsg.innerHTML = '<div class="spinner"></div>';
-                chatHistory.appendChild(thinkingMsg);
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-
-                const fullHistoryText = conversationHistory.map(msg => `[${msg.role}]: ${msg.parts[0].text}`).join('\n');
-                const systemPrompt = constructPrompt(currentStep, fullHistoryText);
-                
-                // CORRECTED LOGIC: Create the payload with the correct alternating structure.
-                let conversationPayload;
-                if (currentStep === 1) { // This is the first turn. History is empty.
-                    conversationPayload = {
-                        contents: [{ role: 'user', parts: [{ text: systemPrompt }] }]
-                    };
-                } else { // This is a subsequent turn. History has messages.
-                    conversationPayload = {
-                        contents: [...conversationHistory.slice(0, -1), { role: 'user', parts: [{ text: conversationHistory[conversationHistory.length - 1].parts[0].text + "\n\n---SYSTEM INSTRUCTION---\n" + systemPrompt }] }]
-                    };
-                }
-
-                const apiUrl = '/.netlify/functions/ai-tutor';
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ conversationPayload })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`API Error: ${response.status} - ${errorData.error || 'Unknown error'}`);
-                    }
-                    const result = await response.json();
-                    if (!result.candidates || result.candidates.length === 0) {
-                         throw new Error("No response from AI. The content may have been blocked.");
-                    }
-                    const aiText = result.candidates[0].content.parts[0].text;
-                    
-                    thinkingMsg.remove();
-                    addMessage(aiText, 'ai');
-
-                } catch (error) {
-                     thinkingMsg.remove();
-                     addMessage(`An error occurred: ${error.message}. Please check your connection or contact the administrator.`, 'ai');
-                } finally {
-                    if (currentStep < synthesisSteps.length -1) {
-                        chatInput.disabled = false;
-                        chatSendBtn.disabled = false;
-                        chatInput.focus();
-                    } else {
-                        finalAnalysisSection.classList.remove('hidden');
-                        addMessage("You have now completed the guided synthesis. You can now generate a final AI analysis of your entire framework.", 'ai');
-                    }
-                }
-            }
-            
-            chatSendBtn.addEventListener('click', () => {
-                const userText = chatInput.value.trim();
-                if (!userText) return;
-                
-                addMessage(userText, 'user');
-                chatInput.value = '';
-                currentStep++;
-                getAiResponse();
-            });
-
-            function initializeChat() {
-                chatHistory.innerHTML = '';
-                conversationHistory = [];
-                currentStep = 0;
-                finalAnalysisSection.classList.add('hidden');
-                finalAnalysisDisplay.classList.add('hidden');
-                finalAnalysisDisplay.textContent = '';
-
-
-                const hasData = CATEGORIES.some(key => document.getElementById(`${key}-display`).value.trim() !== '');
-                if (hasData) {
-                    currentStep = 1; 
-                    getAiResponse();
-                } else {
-                    addMessage("Please load or upload some data from your explorers before we can begin.", 'ai');
-                }
-            }
-
-            const startChatBtn = document.createElement('button');
-            startChatBtn.textContent = 'Begin Guided Synthesis';
-            startChatBtn.className = 'btn btn-primary mx-auto';
-            chatHistory.appendChild(startChatBtn);
-            startChatBtn.addEventListener('click', () => {
-                initializeChat();
-            });
-
-            generateAnalysisBtn.addEventListener('click', async () => {
-                analysisBtnText.classList.add('hidden');
-                analysisSpinner.classList.remove('hidden');
-                generateAnalysisBtn.disabled = true;
-
-                let allData = '';
-                CATEGORIES.forEach(key => {
-                    const formattedName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    allData += `--- ${formattedName} ---\n${document.getElementById(`${key}-display`).value || 'No data provided.'}\n\n`;
-                });
-                
-                const fullHistoryText = conversationHistory.map(msg => `[${msg.role}]: ${msg.parts[0].text}`).join('\n');
-
-
-                const finalPrompt = `You are a philosophy tutor specializing in a framework that analyzes personal reality through Beliefs, Rules, Ontology, Authenticity, Assembly History, and Future Pull. You have just completed a guided synthesis conversation with a student.
-                
-                **Your Task:**
-                Write a final, comprehensive analysis of the student's Personal Reality Framework. Your analysis MUST be formatted in four distinct sections, with the titles in bold:
-                
-                1.  **Key Themes:** Identify and describe 2-3 of the most important recurring ideas that connect the different parts of their framework.
-                2.  **Potential Tensions:** Identify 1-2 areas where their stated beliefs, rules, or goals might conflict or be in tension with each other, and frame them as thoughtful questions.
-                3.  **A Question for Deeper Synthesis:** Formulate one final, powerful, open-ended question that will challenge the student to think about their framework in a new way.
-                4.  **Voice and Platform Analysis:** Based on the theoretical framework provided below, analyze the student's "Voice Architecture" and their approach to "Platform Innovation."
-                
-                **Theoretical Framework for Voice and Platform Analysis:**
-                - **Voice:** The capacity to articulate one's Personal Reality Framework. Different "Voice Architectures" exist (e.g., individualistic, collective, scientific, spiritual, artistic).
-                - **Platform:** The institutional and social structures that provide opportunities for a voice to be heard. "Platform Innovation" or "Platform Creation" is when a person builds new structures to amplify voices, rather than just using existing ones.
-                - **Capability Development:** Analyze how the person's actions or framework helps develop the capabilities of themselves or others.
-                
-                **Student's Raw Data:**
-                ${allData}
-                
-                **Conversation Transcript:**
-                ${fullHistoryText}
-                `;
-                
-                const conversationPayload = {
-                    contents: [{ role: 'user', parts: [{ text: finalPrompt }] }]
-                };
-
-                 try {
-                    const apiUrl = '/.netlify/functions/ai-tutor';
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ conversationPayload }) 
-                    });
-                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`API Error: ${response.status} - ${errorData.error}`);
-                    }
-                    const result = await response.json();
-                     if (!result.candidates || result.candidates.length === 0) {
-                         throw new Error("No response from AI. The content may have been blocked.");
-                    }
-                    const aiText = result.candidates[0].content.parts[0].text;
-                    
-                    finalAnalysisDisplay.textContent = aiText;
-                    finalAnalysisDisplay.classList.remove('hidden');
-
-                } catch (error) {
-                     finalAnalysisDisplay.textContent = `An error occurred: ${error.message}. Please check your connection or contact the administrator.`;
-                     finalAnalysisDisplay.classList.remove('hidden');
-                } finally {
-                    analysisBtnText.classList.remove('hidden');
-                    analysisSpinner.classList.add('hidden');
-                    generateAnalysisBtn.disabled = false;
-                }
-            });
-
-            // --- Download Full PRF ---
-            downloadPrfBtn.addEventListener('click', () => {
-                let fullPrfText = "My Personal Reality Framework\n============================\n\n";
-                CATEGORIES.forEach(key => {
-                    const formattedName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    fullPrfText += `--- ${formattedName} ---\n` + (document.getElementById(`${key}-display`).value || "No data uploaded.") + "\n\n";
-                });
-                
-                if (conversationHistory.length > 0) {
-                    fullPrfText += "============================\n--- GUIDED SYNTHESIS CONVERSATION ---\n";
-                    const cleanHistory = conversationHistory.filter(msg => msg.role === 'user' || msg.role === 'model');
-                    cleanHistory.forEach(msg => {
-                        const sender = msg.role === 'user' ? 'Me' : 'AI Tutor';
-                        fullPrfText += `\n[${sender}]:\n${msg.parts[0].text}\n`;
-                    });
-                     fullPrfText += "\n\n";
-                }
-                
-                if (!finalAnalysisDisplay.classList.contains('hidden')) {
-                    fullPrfText += "============================\n--- FINAL AI ANALYSIS ---\n" + (finalAnalysisDisplay.textContent || "No analysis generated.") + "\n\n";
-                }
-
-                const blob = new Blob([fullPrfText], { type: 'text/plain;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'My-Personal-Reality-Framework.txt';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-        });
-    </script>
+    // ---------- Render ----------
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
-
