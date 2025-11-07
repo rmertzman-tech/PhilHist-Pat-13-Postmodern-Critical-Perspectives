@@ -1,476 +1,764 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Part 13 — Global & Decolonial Philosophies</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Fonts & Tailwind -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root { --ring: #7c3aed; }
-    html, body { height: 100%; }
-    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .focus-ring:focus { outline: 3px solid var(--ring); outline-offset: 2px; }
-  </style>
-  <!-- React 18 UMD + Babel -->
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Part 13 — Context, Standpoint & Repair (with Tracking)</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .fade-in { animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-gray-50">
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useMemo } = React;
 
-    // ---------- Utilities ----------
-    function useLocalFlag(key, initial=false){
-      const [v,setV] = useState(()=>{
-        try {
-          const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : initial;
-        } catch { return initial; }
-      });
-      useEffect(()=>{ try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key,v]);
-      return [v,setV];
-    }
-    function useLocalString(key, initial=""){
-      const [v,setV] = useState(()=>{
-        try {
-          const raw = localStorage.getItem(key);
-          return raw ?? initial;
-        } catch { return initial; }
-      });
-      useEffect(()=>{ try { localStorage.setItem(key, v); } catch {} }, [key,v]);
-      return [v,setV];
-    }
+    // -----------------------------
+    // Utils
+    // -----------------------------
+    const STORAGE_KEY = 'part13_app_state_v2';
 
-    // ---------- Quick Reference Data ----------
-    const QUICK_REF = {
-      bigQuestion: "Who gets to set the “context,” and how does standpoint change what counts as knowledge?",
+    const generateSessionId = () => {
+      const d = new Date();
+      const dateStr = d.toISOString().slice(0,10).replace(/-/g,'');
+      const timeStr = d.toTimeString().slice(0,8).replace(/:/g,'');
+      const rnd = Math.random().toString(36).slice(2,8).toUpperCase();
+      return `P13-${dateStr}-${timeStr}-${rnd}`;
+    };
+
+    const nowISO = () => new Date().toISOString();
+
+    // -----------------------------
+    // Data (distinct per section)
+    // -----------------------------
+    const NAV_SECTIONS = [
+      { id: 'overview', label: 'Overview', icon: '🌍' },
+      { id: 'concepts', label: 'Core Concepts', icon: '🧭' },
+      { id: 'threads', label: 'Threads & Influences', icon: '🧶' },
+      { id: 'patterns', label: 'Design Patterns', icon: '🛠️' },
+      { id: 'example', label: 'Worked Example', icon: '📋' },
+      { id: 'assessment', label: 'Assessment & Reflection', icon: '✅' },
+    ];
+
+    const OVERVIEW = {
+      title: 'Part 13 — Global & Decolonial Philosophies; Feminist • Critical Race • Indigenous Thought',
+      bigQuestion: 'Who gets to set the “context,” and how does standpoint change what counts as knowledge?',
       capabilities: [
-        "Epistemic justice (fairness in credibility and interpretive resources)",
-        "Pluralism (holding multiple knowledge-systems together)",
-        "Repair & recognition (truth, acknowledgement, remedy, review)"
+        'Epistemic justice (fair credibility, concept access, uptake of reasons)',
+        'Pluralism by design (hold multiple knowledge systems together)',
+        'Repair & recognition (truth, acknowledgement, remedy, review)'
       ],
       abcd: [
-        { letter: "A", title: "Agency", note: "Voice, authorship, co-governance" },
-        { letter: "B", title: "Beauty/Awe", note: "Value of plurality; dignity as salience" },
-        { letter: "C", title: "Context", note: "Institutional exclusions; concept infrastructures" },
-        { letter: "D", title: "Dynamics", note: "Power feedbacks; path dependence; repair loops" }
+        { letter: 'A', title: 'Agency', line: 'Voice, authorship, co-governance' },
+        { letter: 'B', title: 'Beauty/Awe', line: 'Felt dignity of plurality' },
+        { letter: 'C', title: 'Context', line: 'Institutional gates: rubrics, concepts, procedures' },
+        { letter: 'D', title: 'Dynamics', line: 'Power feedbacks, path dependence, scheduled audits' },
       ],
-      outputs: [
-        "Inclusive procedures (participatory design; community review; shared governance)",
-        "TRC-style forums (truth, acknowledgement, remedy, scheduled follow-up)",
-        "Project: redesign an assessment or rubric for fairness & transparency"
+      levels: [
+        { level: 'Capacity', cue: 'Reasons exist but credibility gates/terms suppress expression' },
+        { level: 'Capability', cue: 'Calibrated criteria + shared language enable reliable contribution' },
+        { level: 'Constructor', cue: 'Standing procedures (committees, challenge channels, change-logs)' },
+        { level: 'Meta-constructor', cue: 'Scheduled audits/amendments; rotating roles; versioned concepts' },
       ]
     };
 
-    // ---------- Core Concepts Drawer (folded in) ----------
-    const CONCEPTS_13 = [
+    const CONCEPTS = [
       {
-        name: "Testimonial injustice",
-        why: "Credibility gets discounted by identity-coded cues rather than reasons/evidence.",
-        abcd: "A (voice), C (gates)",
-        levels: "Context→Capability",
-        use: "Replace vibe-words with calibrated descriptors tied to rubric criteria.",
-        watch: "Over-correcting by dropping standards.",
-        contested: "Scope & remedies"
+        id: 'testimonial-injustice',
+        title: 'Testimonial injustice',
+        summary: 'A speaker’s credibility is discounted due to identity-coded cues rather than evidence.',
+        abcd: ['A (voice)', 'C (gates)'],
+        levelMove: 'Capacity → Capability (explicit credibility criteria)',
+        pattern: [
+          'Replace vibe-words with calibrated descriptors tied to rubric criteria',
+          'Enable multiple delivery modes for the same competence'
+        ],
+        watch: 'Over-correcting by dropping standards instead of clarifying them',
+        check: 'Inter-rater reliability ↑; variance across identity groups ↓'
       },
       {
-        name: "Hermeneutical injustice",
-        why: "A shared concept is missing, making an experience unintelligible to the group.",
-        abcd: "C (concept infra), D (concept growth)",
-        levels: "Meta-constructor",
-        use: "Coin a course term; add to a public class glossary with examples & date.",
-        watch: "Private jargon without uptake.",
-        contested: "Who coins? Who consents?"
+        id: 'hermeneutical-injustice',
+        title: 'Hermeneutical injustice',
+        summary: 'Missing shared concepts render experiences unintelligible to the group.',
+        abcd: ['C (concept infrastructure)', 'D (concept growth)'],
+        levelMove: 'Meta-constructor (scheduled lexicon updates)',
+        pattern: [
+          'Coin local terms; add to a public glossary with examples & dates',
+          'Embed terms into prompts/rubrics so they are actually used'
+        ],
+        watch: 'Private jargon without community uptake',
+        check: 'Glossary cited in work; terms appear in rubrics and feedback'
       },
       {
-        name: "Standpoint methodology",
-        why: "Inquiry improves by systematically including differently situated knowers.",
-        abcd: "A (agency), B (plural dignity)",
-        levels: "Capacity→Capability",
-        use: "Offer dual-track evidence paths with equal rigor.",
-        watch: "Token participation without power-sharing.",
-        contested: "Relativism vs. standards"
+        id: 'standpoint-methodology',
+        title: 'Standpoint methodology',
+        summary: 'Inquiry improves by systematically including differently situated knowers.',
+        abcd: ['A (authorship)', 'B (plural dignity)'],
+        levelMove: 'Capacity → Capability (roles/prompts require standpoints)',
+        pattern: [
+          'Dual-track evidence (textual analysis + lived expertise/interview)',
+          'Require explicit triangulation notes'
+        ],
+        watch: 'Tokenism without power-sharing in decision points',
+        check: 'Decision notes explain how standpoint evidence altered conclusions'
       },
       {
-        name: "Two-Eyed Seeing",
-        why: "Hold multiple knowledge systems together for joint problem-solving.",
-        abcd: "B (awe), C (context), D (feedbacks)",
-        levels: "Constructor",
-        use: "Pair close reading with community interview + analytic memo.",
-        watch: "One eye dominating the other.",
-        contested: "Depth of co-governance"
+        id: 'two-eyed-seeing',
+        title: 'Two-Eyed Seeing (Etuaptmumk)',
+        summary: 'Hold two knowledge systems together for joint problem solving.',
+        abcd: ['B (awe of plurality)', 'C (protected lanes)', 'D (co-evolution)'],
+        levelMove: 'Constructor (routine persists & socializes newcomers)',
+        pattern: [
+          'Pair close reading with community-located method',
+          'Produce dual artifacts; run a joint critique'
+        ],
+        watch: 'One eye quietly dominating the other',
+        check: 'Outputs keep both lanes legible; reviewers from each lane sign off'
       },
       {
-        name: "Participatory repair",
-        why: "Combine truth, acknowledgement, material remedy, and dated follow-up.",
-        abcd: "D (loops), C (procedures)",
-        levels: "Meta-constructor",
-        use: "Mini-TRC: narration → recognition → remedy → scheduled review.",
-        watch: "Apology without remedy.",
-        contested: "What counts as remedy"
+        id: 'participatory-repair',
+        title: 'Participatory repair (Truth–Recognition–Remedy–Review)',
+        summary: 'From apology to actionable remedy with a calendar and owners.',
+        abcd: ['D (loops)', 'C (procedures)'],
+        levelMove: 'Meta-constructor (living change-log & scheduled re-checks)',
+        pattern: [
+          'Narration → acknowledgement → remedy (owners/resources/dates) → pre-scheduled review'
+        ],
+        watch: 'Symbolic statements without resource commitments',
+        check: 'Change-log shows closed items and next reviews'
+      },
+    ];
+
+    const THREADS = [
+      { id:'derrida', name:'Derrida', hook:'Deconstruction, différance, trace', takeaway:'Context is never neutral; meaning travels through exclusions.', abcd:['C','D'] },
+      { id:'foucault', name:'Foucault', hook:'Power/knowledge, genealogy', takeaway:'Institutions make some knowledges sayable/doable.', abcd:['C','D'] },
+      { id:'beauvoir', name:'Beauvoir', hook:'The Other, situated freedom', takeaway:'Roles and recognition obstruct or enable agency.', abcd:['A','C'] },
+      { id:'said', name:'Said', hook:'Orientalism', takeaway:'Stereotype machines shape what counts as “civilization.”', abcd:['C'] },
+      { id:'spivak', name:'Spivak', hook:'Subaltern', takeaway:'Frames can translate away expression by design.', abcd:['A','C'] },
+      { id:'fanon', name:'Fanon', hook:'Colonial subjectivity, decolonization', takeaway:'Repair requires material change, not only narrative.', abcd:['D','C'] },
+      { id:'lugones-anzaldua', name:'Lugones & Anzaldúa', hook:'World-traveling, borderlands', takeaway:'Plural identities as method; code-switching becomes capability.', abcd:['A','B','C'] },
+      { id:'dotson', name:'Dotson', hook:'Epistemic oppression', takeaway:'Systemic patterns can preclude participation.', abcd:['C','D'] },
+      { id:'smith', name:'Linda Tuhiwai Smith', hook:'Decolonizing methodologies', takeaway:'Community-governed research; protocols as constructors.', abcd:['C','D'] },
+      { id:'santos', name:'Boaventura de Sousa Santos', hook:'Epistemologies of the South', takeaway:'Abyssal lines; ecology of knowledges.', abcd:['B','C'] },
+      { id:'simpson', name:'Leanne Betasamosake Simpson', hook:'Resurgence', takeaway:'Everyday practice as a living constructor of sovereignty.', abcd:['A','D'] },
+    ];
+
+    const PATTERNS = [
+      {
+        id: 'inclusive-procedure',
+        title: 'Inclusive Procedure Pack',
+        goal: 'Convert capacity → capability → constructor',
+        steps: [
+          'Rubric refit: replace impressionistic language with calibrated descriptors & accepted evidence types',
+          'Dual-track submissions (define standards per lane)',
+          'Challenge channel: anonymous form + dated response → public change-log',
+          'Standing co-review: rotating peer/community member; decision notes log “how it changed the outcome”'
+        ],
+        abcd: 'C (gates), A (voice), D (review cadence), B (dignity visible)'
+      },
+      {
+        id: 'mini-trc',
+        title: 'Mini-TRC (Truth–Recognition–Remedy–Review)',
+        goal: 'Move from apology to scheduled remedy',
+        steps: [
+          'Truth: document pattern with multiple standpoints',
+          'Recognition: publish a short acknowledgement brief',
+          'Remedy: concrete actions, owners, resources, dates',
+          'Review: pre-schedule follow-up; update change-log'
+        ],
+        levels: 'Pushes toward meta-constructor'
+      },
+      {
+        id: 'two-eyed-studio',
+        title: 'Two-Eyed Studio',
+        goal: 'Keep both knowledge lanes legible',
+        steps: [
+          'Artifact 1: close textual/analytic product',
+          'Artifact 2: community-located product (interview/mapping/storywork)',
+          'Joint critique: alignments/divergences; redesign that retains both lanes'
+        ],
+        guard: 'Prevent one lane from silently dominating the other'
       }
     ];
 
-    // ---------- Components ----------
-    function Header(){
-      return (
-        <header className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <h1 className="text-2xl md:text-3xl font-extrabold">Part 13 — Global & Decolonial Philosophies</h1>
-            <p className="opacity-90 mt-1">Feminist • Critical Race • Indigenous Thought</p>
-          </div>
-        </header>
-      );
-    }
+    const EXAMPLE = {
+      title: 'Worked Example — Redesign a Midterm Essay Rubric',
+      old: '“Clarity, logic, originality (30 pts)” → strong lived reasoning under-scored',
+      steps: [
+        'Capacity diagnostic: reasons exist; lane too narrow',
+        'Capability move: split into 3 calibrated criteria (argument quality, evidence integration, translation skill)',
+        'Constructor move: add rotating co-review; require a short “how it changed my draft” section',
+        'Meta-constructor move: term-end rubric audit; compare variance; submit a one-page change proposal'
+      ],
+      abcdCheck: [
+        'A: co-authored co-review',
+        'B: plural exemplars are showcased',
+        'C: widened, explicit gates',
+        'D: scheduled audit'
+      ],
+      metric: 'Inter-rater reliability ↑, group gaps ↓, self-efficacy ↑'
+    };
 
-    function NavBar({ current, onJump }){
-      const items = [
-        { id:"quick", label:"Quick Reference" },
-        { id:"concepts", label:"Core Concepts" },
-        { id:"why", label:"Why This Matters" },
-        { id:"levels", label:"Four-Level Diagnostics" },
-        { id:"activities", label:"Activities" },
-        { id:"project", label:"Assessment Redesign" },
-        { id:"reflection", label:"Reflection" }
-      ];
+    const ASSESSMENT = {
+      rubric: [
+        { level: 'Mastered', text: 'Designs/revises a procedure that widens evidence lanes, embeds challenge/change-log, and runs a scheduled review that leads to an amendment.' },
+        { level: 'Proficient', text: 'Applies two core concepts to redesign a rubric/activity; includes co-review and a dated follow-up; partial calibration present.' },
+        { level: 'Developing', text: 'Identifies harm and names concepts; proposed fixes lack procedural detail or schedule.' },
+        { level: 'Novice', text: 'Describes issues in general terms; no link to procedures or ABCD/Levels.' },
+      ],
+      prompts: [
+        'Where do context gates silently shape whose reasons count in your setting?',
+        'Which two concepts will you implement next week? How, exactly?',
+        'What does repair look like here (owners, resources, dates, next review)?'
+      ],
+      toolkit: [
+        'ABCD card: A (voice), B (plural dignity), C (gates), D (loops)',
+        'Levels cue: Capacity? Capability? Constructor? Meta-constructor?',
+        'Mini-TRC checklist: Truth → Recognition → Remedy → Review (dated)',
+        'Change-log: Item | Rationale | Owner | Resources | Due | Status | Next review',
+        'Glossary line: Term | Plain definition | Example | Introduced by | Date | Next review'
+      ]
+    };
+
+    // -----------------------------
+    // Reusable UI
+    // -----------------------------
+    const SectionCard = ({ children }) => (
+      <div className="bg-white shadow rounded-lg p-6 fade-in">{children}</div>
+    );
+
+    const Pill = ({ children }) => (
+      <span className="inline-block text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 mr-2 mb-2">
+        {children}
+      </span>
+    );
+
+    const Accordion = ({ items, idPrefix, onInteraction }) => {
+      const [openSet, setOpenSet] = useState(new Set());
+      const toggle = (id) => {
+        setOpenSet(prev => {
+          const next = new Set(prev);
+          if (next.has(id)) next.delete(id); else next.add(id);
+          return next;
+        });
+        onInteraction?.();
+      };
       return (
-        <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-6xl mx-auto px-2">
-            <div className="flex gap-2 overflow-x-auto py-2">
-              {items.map(it=>(
+        <div className="space-y-3">
+          {items.map(item => {
+            const open = openSet.has(item.id);
+            return (
+              <div key={`${idPrefix}-${item.id}`} className="border rounded-lg bg-white">
                 <button
-                  key={it.id}
-                  className={
-                    "px-3 py-2 rounded-lg text-sm font-semibold focus-ring " +
-                    (current===it.id ? "bg-violet-100 text-violet-800" : "hover:bg-slate-100")
-                  }
-                  onClick={()=>onJump(it.id)}
+                  className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50"
+                  onClick={() => toggle(item.id)}
+                  aria-expanded={open}
+                  aria-controls={`${idPrefix}-panel-${item.id}`}
+                  id={`${idPrefix}-button-${item.id}`}
                 >
-                  {it.label}
+                  <span className="font-semibold text-gray-900">{item.title || item.name}</span>
+                  <span className="text-gray-500">{open ? '▲' : '▼'}</span>
                 </button>
-              ))}
-            </div>
-          </div>
-        </nav>
-      );
-    }
+                {open && (
+                  <div
+                    id={`${idPrefix}-panel-${item.id}`}
+                    className="px-4 pb-4 pt-2 border-t fade-in"
+                    role="region"
+                    aria-labelledby={`${idPrefix}-button-${item.id}`}
+                  >
+                    {'summary' in item && (
+                      <p className="text-gray-700 mb-2">{item.summary}</p>
+                    )}
 
-    function QuickReference(){
-      const [open, setOpen] = useLocalFlag("p13_quick_open", true);
-      return (
-        <section id="quick" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <button
-              className="w-full text-left px-5 py-4 flex items-center justify-between focus-ring rounded-2xl"
-              onClick={()=>setOpen(!open)}
-              aria-expanded={open}
-            >
-              <span className="font-bold text-lg">Quick Reference</span>
-              <span className="text-slate-500">{open ? "Hide ▲" : "Show ▼"}</span>
-            </button>
-            {open && (
-              <div className="px-5 pb-5">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
-                    <h3 className="font-bold text-violet-900 mb-2">Big Question</h3>
-                    <p className="text-slate-800">{QUICK_REF.bigQuestion}</p>
-                  </div>
-                  <div className="bg-sky-50 rounded-xl p-4 border border-sky-100">
-                    <h3 className="font-bold text-sky-900 mb-2">Capabilities</h3>
-                    <ul className="list-disc list-inside text-slate-800 space-y-1">
-                      {QUICK_REF.capabilities.map((c, i)=>(<li key={i}>{c}</li>))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-6 grid md:grid-cols-4 gap-3">
-                  {QUICK_REF.abcd.map((x, i)=>(
-                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-violet-600 text-white text-sm font-bold">{x.letter}</span>
-                        <span className="font-semibold">{x.title}</span>
+                    {'hook' in item && (
+                      <div>
+                        <p className="text-sm text-gray-600"><span className="font-semibold">Hook:</span> {item.hook}</p>
+                        <p className="text-sm text-gray-600 mt-1"><span className="font-semibold">Takeaway:</span> {item.takeaway}</p>
+                        <div className="mt-2">
+                          {item.abcd.map((t, i) => <Pill key={`${item.id}-tag-${i}`}>{t}</Pill>)}
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-700 mt-1">{x.note}</p>
-                    </div>
-                  ))}
-                </div>
+                    )}
 
-                <div className="mt-6 bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                  <h3 className="font-bold text-emerald-900 mb-2">Constructor Outputs</h3>
-                  <ul className="list-disc list-inside text-slate-800 space-y-1">
-                    {QUICK_REF.outputs.map((o, i)=>(<li key={i}>{o}</li>))}
-                  </ul>
-                </div>
+                    {'abcd' in item && Array.isArray(item.abcd) && item.abcd.length > 0 && !('hook' in item) && (
+                      <div className="mt-2">
+                        <div className="mb-1 text-sm text-gray-600 font-semibold">ABCD</div>
+                        <div>{item.abcd.map((t, i) => <Pill key={`${item.id}-abcd-${i}`}>{t}</Pill>)}</div>
+                      </div>
+                    )}
+
+                    {'levelMove' in item && (
+                      <p className="text-sm text-gray-600 mt-2"><span className="font-semibold">Four-Levels leverage:</span> {item.levelMove}</p>
+                    )}
+
+                    {'pattern' in item && Array.isArray(item.pattern) && (
+                      <div className="mt-2">
+                        <div className="text-sm font-semibold text-gray-700">Use it (pattern)</div>
+                        <ul className="list-disc list-inside text-sm text-gray-700">
+                          {item.pattern.map((p, i) => <li key={`${item.id}-p-${i}`}>{p}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    {'watch' in item && (
+                      <p className="text-sm text-gray-600 mt-2"><span className="font-semibold">Watch for:</span> {item.watch}</p>
+                    )}
+
+                    {'check' in item && (
+                      <p className="text-sm text-gray-600 mt-1"><span className="font-semibold">Checkpoint:</span> {item.check}</p>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </section>
+            );
+          })}
+        </div>
       );
-    }
+    };
 
-    function CoreConceptsDrawer(){
-      const [open,setOpen] = useLocalFlag("p13_concepts_open", false);
-      return (
-        <section id="concepts" className="max-w-6xl mx-auto px-4 pb-2">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <button
-              className="w-full text-left px-5 py-4 flex items-center justify-between focus-ring rounded-2xl"
-              onClick={()=>setOpen(!open)}
-              aria-expanded={open}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-violet-700 font-extrabold">◎</span>
-                <span className="font-bold text-lg">Core Concepts (quick refresher)</span>
-              </div>
-              <span className="text-slate-500">{open ? "Hide ▲" : "Show ▼"}</span>
-            </button>
-            {open && (
-              <div className="px-5 pb-5">
-                <div className="grid md:grid-cols-2 gap-3">
-                  {CONCEPTS_13.map((c, idx)=>(
-                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                      <div className="font-semibold">{c.name}</div>
-                      <p className="text-sm text-slate-800 mt-1">{c.why}</p>
-                      <p className="text-xs text-violet-700 mt-2"><span className="font-semibold">ABCD:</span> {c.abcd}</p>
-                      <p className="text-xs text-sky-700"><span className="font-semibold">Four-Levels:</span> {c.levels}</p>
-                      <p className="text-xs text-slate-800 mt-2"><span className="font-semibold">Use it:</span> {c.use}</p>
-                      <p className="text-xs text-amber-700"><span className="font-semibold">Watch for:</span> {c.watch}</p>
-                      <p className="text-[11px] text-slate-500 mt-1"><span className="font-semibold">Contested?</span> {c.contested}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+    // -----------------------------
+    // Sections
+    // -----------------------------
+    const Overview = ({ onInteraction }) => (
+      <SectionCard>
+        <h1 className="text-2xl font-bold text-gray-900">{OVERVIEW.title}</h1>
+        <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+          <p className="font-semibold text-blue-900">Big Question</p>
+          <p className="text-gray-800">{OVERVIEW.bigQuestion}</p>
+        </div>
+
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold text-gray-900">Capabilities</h2>
+          <ul className="list-disc list-inside text-gray-700 mt-2">
+            {OVERVIEW.capabilities.map((c,i)=><li key={`cap-${i}`}>{c}</li>)}
+          </ul>
+        </div>
+
+        <div className="mt-6 grid md:grid-cols-2 gap-4">
+          <div className="bg-purple-50 p-4 rounded border border-purple-200">
+            <h3 className="font-semibold text-purple-900 mb-2">ABCD Lens</h3>
+            <ul className="text-gray-700 list-disc list-inside">
+              {OVERVIEW.abcd.map((x,i)=><li key={`abcd-${i}`}><span className="font-semibold">{x.letter} — {x.title}:</span> {x.line}</li>)}
+            </ul>
           </div>
-        </section>
-      );
-    }
-
-    function WhyThisMatters(){
-      return (
-        <section id="why" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-            <h2 className="text-xl font-extrabold mb-3">Why This Matters</h2>
-            <p className="text-slate-800">
-              Who sets the context often determines whose reasons count, which experiences are legible, and what
-              “evidence” even is. Treating context as designable infrastructure—concepts, procedures, and power-sharing—
-              lets us move from capacity (people’s latent agency) to capability (reliable voice and inclusion),
-              then to constructors (persistent inclusive routines) and meta-constructors (self-improving institutions).
-            </p>
+          <div className="bg-green-50 p-4 rounded border border-green-200">
+            <h3 className="font-semibold text-green-900 mb-2">Four-Level Diagnostic</h3>
+            <ul className="text-gray-700 list-disc list-inside">
+              {OVERVIEW.levels.map((x,i)=><li key={`lvl-${i}`}><span className="font-semibold">{x.level}:</span> {x.cue}</li>)}
+            </ul>
           </div>
-        </section>
-      );
-    }
+        </div>
+      </SectionCard>
+    );
 
-    function FourLevelDiagnostics(){
-      return (
-        <section id="levels" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5">
-              <h3 className="font-bold mb-2">Capacity → Capability</h3>
-              <p className="text-sm text-slate-800">
-                Many learners have the capacity to contribute, but credibility gates and missing shared concepts
-                suppress expression. Design moves: clarify criteria, widen evidence channels, co-build a public glossary.
-              </p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-5">
-              <h3 className="font-bold mb-2">Constructor</h3>
-              <p className="text-sm text-slate-800">
-                Make inclusion persistent: participatory rubrics, standing co-review panels, documented challenge channels,
-                public change-logs with dates.
-              </p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-5">
-              <h3 className="font-bold mb-2">Meta-Constructor</h3>
-              <p className="text-sm text-slate-800">
-                Build learning loops: scheduled audits, report-back sessions, rotating facilitation, sunset clauses,
-                versioned concepts with provenance notes.
-              </p>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-5">
-              <h3 className="font-bold mb-2">ABCD Lens</h3>
-              <ul className="list-disc list-inside text-sm text-slate-800 space-y-1">
-                <li><b>A:</b> Committees that guarantee voice & co-authorship.</li>
-                <li><b>B:</b> Make plurality visible (exhibits, dual-track exemplars).</li>
-                <li><b>C:</b> Redesign procedures and concept infrastructure.</li>
-                <li><b>D:</b> Establish review cadence and repair protocols.</li>
+    const Concepts = ({ onInteraction }) => (
+      <SectionCard>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Core Concepts (quick refresher + application)</h2>
+        </div>
+        <p className="text-gray-700 mt-2 mb-4">Each entry ties concept → ABCD → Four-Levels → practice pattern → pitfalls → checkpoint.</p>
+        <Accordion items={CONCEPTS} idPrefix="concepts" onInteraction={onInteraction}/>
+      </SectionCard>
+    );
+
+    const Threads = ({ onInteraction }) => (
+      <SectionCard>
+        <h2 className="text-xl font-bold text-gray-900">Threads & Influences (concepts as tools)</h2>
+        <p className="text-gray-700 mt-2 mb-4">
+          Use these names as handles for design moves (e.g., “Do a genealogical audit,” “Add a borderlands lane”).
+        </p>
+        <Accordion items={THREADS} idPrefix="threads" onInteraction={onInteraction}/>
+      </SectionCard>
+    );
+
+    const Patterns = ({ onInteraction }) => (
+      <SectionCard>
+        <h2 className="text-xl font-bold text-gray-900">Design Patterns (ready-to-run)</h2>
+        <div className="mt-4 space-y-4">
+          {PATTERNS.map(p => (
+            <div key={p.id} className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="font-semibold text-gray-900">{p.title}</h3>
+              <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Goal:</span> {p.goal}</p>
+              <ul className="list-disc list-inside text-gray-700 mt-2">
+                {p.steps.map((s,i)=><li key={`${p.id}-s-${i}`}>{s}</li>)}
               </ul>
+              {p.abcd && <p className="text-sm text-gray-700 mt-2"><span className="font-semibold">ABCD:</span> {p.abcd}</p>}
+              {p.levels && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Levels:</span> {p.levels}</p>}
+              {p.guard && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Guardrail:</span> {p.guard}</p>}
             </div>
-          </div>
-        </section>
-      );
-    }
+          ))}
+        </div>
+      </SectionCard>
+    );
 
-    function Activities(){
-      const [trcOpen,setTrcOpen]=useLocalFlag("p13_trc_open", true);
-      const [pdOpen,setPdOpen]=useLocalFlag("p13_pd_open", false);
+    const Example = ({ onInteraction }) => (
+      <SectionCard>
+        <h2 className="text-xl font-bold text-gray-900">{EXAMPLE.title}</h2>
+        <div className="mt-2 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+          <p className="text-gray-800"><span className="font-semibold">Old issue:</span> {EXAMPLE.old}</p>
+        </div>
+        <div className="mt-4">
+          <h3 className="font-semibold text-gray-900">Steps</h3>
+          <ol className="list-decimal list-inside text-gray-700 mt-1">
+            {EXAMPLE.steps.map((s,i)=><li key={`ex-s-${i}`}>{s}</li>)}
+          </ol>
+        </div>
+        <div className="mt-4">
+          <h3 className="font-semibold text-gray-900">ABCD check</h3>
+          <ul className="list-disc list-inside text-gray-700 mt-1">
+            {EXAMPLE.abcdCheck.map((s,i)=><li key={`ex-a-${i}`}>{s}</li>)}
+          </ul>
+        </div>
+        <p className="text-gray-700 mt-3"><span className="font-semibold">Metric:</span> {EXAMPLE.metric}</p>
+      </SectionCard>
+    );
+
+    const Assessment = ({ onInteraction }) => (
+      <SectionCard>
+        <h2 className="text-xl font-bold text-gray-900">Assessment & Reflection</h2>
+        <div className="mt-4 grid md:grid-cols-2 gap-4">
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900">Prose Rubric</h3>
+            <ul className="list-disc list-inside text-gray-700 mt-2">
+              {ASSETS.rubricList()}
+            </ul>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900">Reflection Prompts</h3>
+            <ul className="list-disc list-inside text-gray-700 mt-2">
+              {ASSETS.promptList()}
+            </ul>
+          </div>
+        </div>
+        <div className="bg-gray-100 border rounded-lg p-4 mt-4">
+          <h3 className="font-semibold text-gray-900">One-Page Toolkit</h3>
+          <ul className="list-disc list-inside text-gray-700 mt-2">
+            {ASSETS.toolkitList()}
+          </ul>
+        </div>
+      </SectionCard>
+    );
+
+    // Helpers to render lists (keeps JSX above tidy)
+    const ASSETS = {
+      rubricList() {
+        return ASSESSMENT.rubric.map((r,i)=><li key={`rub-${i}`}><span className="font-semibold">{r.level}:</span> {r.text}</li>);
+      },
+      promptList() {
+        return ASSESSMENT.prompts.map((p,i)=><li key={`pr-${i}`}>{p}</li>);
+      },
+      toolkitList() {
+        return ASSESSMENT.toolkit.map((t,i)=><li key={`tk-${i}`}>{t}</li>);
+      }
+    };
+
+    // -----------------------------
+    // Welcome Screen
+    // -----------------------------
+    function Welcome({ onStart }) {
+      const [form, setForm] = useState({ name:'', email:'', course:'' });
+      const valid = form.name && form.email && form.course;
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (!valid) return;
+        onStart(form);
+      };
+
       return (
-        <section id="activities" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-              <button
-                className="w-full text-left px-5 py-4 flex items-center justify-between focus-ring rounded-2xl"
-                onClick={()=>setTrcOpen(!trcOpen)}
-                aria-expanded={trcOpen}
-              >
-                <span className="font-bold">Activity 1: Mini-TRC (Truth–Recognition–Remedy–Review)</span>
-                <span className="text-slate-500">{trcOpen ? "Hide ▲" : "Show ▼"}</span>
-              </button>
-              {trcOpen && (
-                <div className="px-5 pb-5">
-                  <ol className="list-decimal list-inside text-slate-800 space-y-1">
-                    <li><b>Truth.</b> Narrate a concrete harm pattern; collect multiple standpoints.</li>
-                    <li><b>Recognition.</b> Publicly acknowledge impacts; publish a short brief.</li>
-                    <li><b>Remedy.</b> Specify material/structural changes; assign owners and dates.</li>
-                    <li><b>Review.</b> Calendar a follow-up; update a public change-log.</li>
-                  </ol>
+        <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-600">
+          <div className="max-w-3xl mx-auto px-4 py-12">
+            <div className="bg-white rounded-xl shadow-2xl p-8">
+              <h1 className="text-3xl font-extrabold text-gray-900">Part 13 — Context, Standpoint & Repair</h1>
+              <p className="mt-2 text-gray-700">Global & Decolonial • Feminist • Critical Race • Indigenous Thought</p>
+
+              <div className="mt-6 p-4 rounded-lg bg-blue-50 border-l-4 border-blue-400">
+                <p className="text-gray-800"><span className="font-semibold">Big Question:</span> Who sets the context, and how does standpoint change what counts as knowledge?</p>
+              </div>
+
+              <form onSubmit={submit} className="mt-8 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <input className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
+                         value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required/>
                 </div>
-              )}
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-              <button
-                className="w-full text-left px-5 py-4 flex items-center justify-between focus-ring rounded-2xl"
-                onClick={()=>setPdOpen(!pdOpen)}
-                aria-expanded={pdOpen}
-              >
-                <span className="font-bold">Activity 2: Two-Eyed Seeing Design Sprint</span>
-                <span className="text-slate-500">{pdOpen ? "Hide ▲" : "Show ▼"}</span>
-              </button>
-              {pdOpen && (
-                <div className="px-5 pb-5">
-                  <ul className="list-disc list-inside text-slate-800 space-y-1">
-                    <li>Pair an academic analysis with a community-located method.</li>
-                    <li>Produce dual artifacts (e.g., analytic memo + interview synthesis).</li>
-                    <li>Run a joint critique: where do lenses align/diverge? What redesign follows?</li>
-                  </ul>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input type="email" className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
+                         value={form.email} onChange={e=>setForm({...form, email:e.target.value})} required/>
                 </div>
-              )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course / Section *</label>
+                  <input className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
+                         value={form.course} onChange={e=>setForm({...form, course:e.target.value})} required/>
+                </div>
+                <button type="submit"
+                        className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg">
+                  Go to Part 13 →
+                </button>
+              </form>
             </div>
           </div>
-        </section>
-      );
-    }
-
-    function AssessmentRedesign(){
-      const [title, setTitle] = useLocalString("p13_proj_title", "");
-      const [fair, setFair] = useLocalString("p13_proj_fair", "");
-      const [criteria, setCriteria] = useLocalString("p13_proj_criteria", "");
-      const [repair, setRepair] = useLocalString("p13_proj_repair", "");
-      const [review, setReview] = useLocalString("p13_proj_review", "");
-
-      return (
-        <section id="project" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-            <h2 className="text-xl font-extrabold mb-3">Project — Redesign an Assessment for Fairness</h2>
-            <p className="text-slate-800 mb-4">
-              Turn epistemic justice into procedure. Draft an assessment or rubric that (1) widens valid evidence paths,
-              (2) calibrates descriptors to reduce bias, (3) embeds repair and scheduled review.
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Assessment Title</label>
-                <input value={title} onChange={e=>setTitle(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring" placeholder="e.g., Community Inquiry Portfolio"/>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Fairness Goal (1–2 sentences)</label>
-                <input value={fair} onChange={e=>setFair(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring" placeholder="What injustice pattern are you addressing?"/>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-1">Calibrated Criteria (bullets ok)</label>
-                <textarea value={criteria} onChange={e=>setCriteria(e.target.value)}
-                  rows="4" className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
-                  placeholder="- Evidence quality: sources or lived expertise...\n- Reason-giving clarity: ..."></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Repair Path (if harm occurs)</label>
-                <textarea value={repair} onChange={e=>setRepair(e.target.value)}
-                  rows="4" className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
-                  placeholder="TRC-style steps, owners, materials, timeline"></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Review Cadence</label>
-                <textarea value={review} onChange={e=>setReview(e.target.value)}
-                  rows="4" className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
-                  placeholder="When will you audit, with whom, and how will changes be recorded?"></textarea>
-              </div>
-            </div>
-            <div className="mt-4 text-sm text-slate-600">
-              Your entries auto-save in the browser. Copy/paste to submit.
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    function Reflection(){
-      const [notes, setNotes] = useLocalString("p13_reflect", "");
-      return (
-        <section id="reflection" className="max-w-6xl mx-auto px-4 py-6">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-            <h2 className="text-xl font-extrabold mb-3">Reflection</h2>
-            <p className="text-slate-800 mb-3">
-              Where have you seen context silently set what “counts” as knowledge? Which procedures, concepts, or
-              power-sharing moves would shift capacity → capability in your setting?
-            </p>
-            <textarea value={notes} onChange={e=>setNotes(e.target.value)}
-              rows="6" className="w-full border border-slate-300 rounded-lg px-3 py-2 focus-ring"
-              placeholder="Your notes… (auto-saves locally)"></textarea>
-          </div>
-        </section>
-      );
-    }
-
-    function Footer(){
-      return (
-        <footer className="text-sm text-slate-600 py-8">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="border-t border-slate-200 pt-4">
-              <p>ABCD: Agency • Beauty/Awe • Context • Dynamics · Four-Levels: Capacity → Capability → Constructor → Meta-Constructor</p>
-            </div>
-          </div>
-        </footer>
-      );
-    }
-
-    function App(){
-      const [current, setCurrent] = useState("quick");
-
-      useEffect(()=>{
-        // Optional: scroll into view on nav change
-        const el = document.getElementById(current);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, [current]);
-
-      return (
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <NavBar current={current} onJump={setCurrent} />
-          <main className="flex-1">
-            <QuickReference />
-            <CoreConceptsDrawer />
-            <WhyThisMatters />
-            <FourLevelDiagnostics />
-            <Activities />
-            <AssessmentRedesign />
-            <Reflection />
-          </main>
-          <Footer />
         </div>
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
+    // -----------------------------
+    // App with tracking
+    // -----------------------------
+    function App() {
+      const [hasStarted, setHasStarted] = useState(false);
+      const [student, setStudent] = useState({ name:'', email:'', course:'' });
+      const [session, setSession] = useState(null);
+      const [current, setCurrent] = useState('overview');
+      const [sectionProgress, setSectionProgress] = useState({}); // id -> {started, startTime, endTime, timeSpent, interactions, status}
+
+      // load saved
+      useEffect(() => {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data && data.hasStarted) {
+              setHasStarted(true);
+              setStudent(data.student || {name:'', email:'', course:''});
+              setSession(data.session || null);
+              setCurrent(data.current || 'overview');
+              setSectionProgress(data.sectionProgress || {});
+            }
+          }
+        } catch (e) { /* ignore */ }
+      }, []);
+
+      // persist
+      useEffect(() => {
+        const payload = { hasStarted, student, session, current, sectionProgress };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      }, [hasStarted, student, session, current, sectionProgress]);
+
+      const startModule = (info) => {
+        const s = { sessionId: generateSessionId(), startTime: nowISO(), completionTime: null };
+        setStudent(info);
+        setSession(s);
+        setHasStarted(true);
+
+        // init progress for each section
+        const init = {};
+        NAV_SECTIONS.forEach(sec => {
+          init[sec.id] = {
+            started: sec.id === 'overview',
+            startTime: sec.id === 'overview' ? nowISO() : null,
+            endTime: null,
+            timeSpent: 0, // minutes
+            interactions: 0,
+            status: sec.id === 'overview' ? 'in-progress' : 'not-started'
+          };
+        });
+        setSectionProgress(init);
+        setCurrent('overview');
+      };
+
+      const progressPercent = useMemo(() => {
+        const ids = NAV_SECTIONS.map(s=>s.id);
+        if (!ids.length) return 0;
+        const visited = ids.filter(id => sectionProgress[id]?.started).length;
+        return Math.round((visited / ids.length) * 100);
+      }, [sectionProgress]);
+
+      const updateSection = (id, updates) => {
+        setSectionProgress(prev => ({
+          ...prev,
+          [id]: { ...prev[id], ...updates }
+        }));
+      };
+
+      const markInteraction = (id) => {
+        const cur = sectionProgress[id] || {};
+        updateSection(id, { interactions: (cur.interactions || 0) + 1, status: 'in-progress' });
+      };
+
+      const navigateTo = (id) => {
+        if (id === current) return;
+
+        // close out current section timing
+        const curProg = sectionProgress[current];
+        if (curProg?.startTime) {
+          const minutes = Math.max(0, Math.round((Date.now() - Date.parse(curProg.startTime)) / 60000));
+          updateSection(current, {
+            endTime: nowISO(),
+            timeSpent: (curProg.timeSpent || 0) + minutes,
+            status: 'visited'
+          });
+        }
+
+        // open new section
+        const nextProg = sectionProgress[id] || {};
+        if (!nextProg.started) {
+          updateSection(id, { started: true, startTime: nowISO(), status: 'in-progress' });
+        } else {
+          // restart timing window
+          updateSection(id, { startTime: nowISO(), status: 'in-progress' });
+        }
+        setCurrent(id);
+      };
+
+      const completeSession = () => {
+        setSession(prev => ({ ...prev, completionTime: nowISO() }));
+      };
+
+      const resetAll = () => {
+        if (!confirm('This will clear all saved Part 13 progress. Continue?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      };
+
+      const downloadReport = () => {
+        const lines = [];
+        lines.push('═══════════════════════════════════════════════════════');
+        lines.push('PART 13 — Context, Standpoint & Repair — Session Report');
+        lines.push('═══════════════════════════════════════════════════════');
+        lines.push('');
+        lines.push(`Name:  ${student.name}`);
+        lines.push(`Email: ${student.email}`);
+        lines.push(`Course: ${student.course}`);
+        lines.push('');
+        if (session) {
+          lines.push(`Session ID: ${session.sessionId}`);
+          lines.push(`Started:    ${new Date(session.startTime).toLocaleString()}`);
+          lines.push(`Completed:  ${session.completionTime ? new Date(session.completionTime).toLocaleString() : '(not marked complete)'}`);
+        }
+        lines.push('');
+        lines.push('Sections:');
+        let totalMin = 0;
+        NAV_SECTIONS.forEach(sec => {
+          const sp = sectionProgress[sec.id] || {};
+          const minutes = sp.timeSpent || 0;
+          totalMin += minutes;
+          lines.push(`- ${sec.label}`);
+          lines.push(`   status: ${sp.status || 'not-started'} | time: ${minutes} min | interactions: ${sp.interactions || 0}`);
+        });
+        lines.push('');
+        lines.push(`Total recorded time: ${totalMin} minutes`);
+        lines.push('═══════════════════════════════════════════════════════');
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Part13-Report-${(student.name||'student').replace(/\s+/g,'_')}.txt`;
+        a.click();
+      };
+
+      if (!hasStarted) return <Welcome onStart={startModule} />;
+
+      // active section renderer
+      const renderSection = () => {
+        const onInteraction = () => markInteraction(current);
+        switch(current) {
+          case 'overview':   return <Overview onInteraction={onInteraction} />;
+          case 'concepts':   return <Concepts onInteraction={onInteraction} />;
+          case 'threads':    return <Threads onInteraction={onInteraction} />;
+          case 'patterns':   return <Patterns onInteraction={onInteraction} />;
+          case 'example':    return <Example onInteraction={onInteraction} />;
+          case 'assessment': return <Assessment onInteraction={onInteraction} />;
+          default:           return <Overview onInteraction={onInteraction} />;
+        }
+      };
+
+      const activeProgress = sectionProgress[current] || {};
+      const activeInteractions = activeProgress.interactions || 0;
+
+      return (
+        <div className="min-h-screen">
+          <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            <div className="max-w-6xl mx-auto px-4 py-6">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-extrabold">Part 13 — Context, Standpoint & Repair</h1>
+                  <p className="opacity-90">Global & Decolonial • Feminist • Critical Race • Indigenous Thought</p>
+                  <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+                    <div className="h-2 bg-white" style={{width: `${progressPercent}%`}}></div>
+                  </div>
+                  <div className="text-sm mt-1 opacity-90">{progressPercent}% visited</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">{student.name}</div>
+                  <div className="opacity-90">{student.email}</div>
+                  <div className="opacity-90">{student.course}</div>
+                  {session && <div className="mt-1 opacity-90">Session: {session.sessionId}</div>}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <nav className="bg-white border-b sticky top-0 z-40">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex overflow-x-auto space-x-2 py-3">
+                {NAV_SECTIONS.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => navigateTo(s.id)}
+                    className={
+                      'px-4 py-2 rounded-lg border ' +
+                      (current === s.id
+                        ? 'bg-purple-100 border-purple-300 text-purple-800 font-semibold'
+                        : 'bg-white border-gray-200 hover:bg-gray-50')
+                    }
+                    aria-current={current === s.id ? 'page' : undefined}
+                  >
+                    <span className="mr-2">{s.icon}</span>{s.label}
+                  </button>
+                ))}
+                <div className="ml-auto flex gap-2">
+                  <button
+                    onClick={completeSession}
+                    className="px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    title="Mark completion time (you can still continue working)"
+                  >
+                    Mark Complete
+                  </button>
+                  <button
+                    onClick={downloadReport}
+                    className="px-3 py-2 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
+                    title="Download a summary of your session"
+                  >
+                    Download Report
+                  </button>
+                  <button
+                    onClick={resetAll}
+                    className="px-3 py-2 rounded-lg border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100"
+                    title="Clear all saved data"
+                  >
+                    Start Over
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            {renderSection()}
+            <div className="text-xs text-gray-500 mt-4">
+              Section interactions: {activeInteractions}
+            </div>
+          </main>
+
+          <footer className="py-8 text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} Part 13 • ABCD + Four-Levels • For classroom use
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
