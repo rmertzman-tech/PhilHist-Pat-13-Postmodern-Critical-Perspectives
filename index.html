@@ -1086,73 +1086,1524 @@
             );
         }
 
-        // Placeholder sections (to be expanded similarly)
+        // Hermeneutical Justice Section - FULL IMPLEMENTATION
         function HermeneuticalJusticeSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
-            // Similar structure to TestimonialJusticeSection
+            const [currentScenario, setCurrentScenario] = useState(0);
+            const [scenarioAnswer, setScenarioAnswer] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+
+            const scenarios = PRACTICE_SCENARIOS.hermeneutical;
+
+            const handleScenarioAnswer = (optionId) => {
+                setScenarioAnswer(optionId);
+                const scenario = scenarios[currentScenario];
+                const correct = scenario.options.find(o => o.id === optionId).correct;
+                
+                const newResults = {
+                    ...practiceResults,
+                    [scenario.id]: { correct, selectedAnswer: optionId }
+                };
+                setPracticeResults(newResults);
+            };
+
+            const handleNextScenario = () => {
+                if (currentScenario < scenarios.length - 1) {
+                    setCurrentScenario(currentScenario + 1);
+                    setScenarioAnswer(null);
+                } else {
+                    const correct = Object.values(practiceResults).filter(r => r.correct).length;
+                    const total = scenarios.length;
+                    const percentage = (correct / total) * 100;
+                    const mastery = calculateMastery(percentage);
+                    onComplete(mastery);
+                }
+            };
+
+            if (!showScenarios) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Hermeneutical Justice</h2>
+                        
+                        <div className="prose prose-lg max-w-none mb-8">
+                            <p className="text-gray-700 mb-4">
+                                <strong>Hermeneutical injustice</strong> occurs when a community lacks the shared conceptual 
+                                resources to make certain experiences collectively intelligible.
+                            </p>
+
+                            <div className="bg-green-50 border-l-4 border-green-500 p-6 my-6">
+                                <h3 className="text-lg font-semibold text-green-900 mb-2">The Problem</h3>
+                                <p className="text-gray-700 mb-3">
+                                    Before concepts like "sexual harassment," "microaggression," or "gaslighting" existed, 
+                                    people experienced these patterns but couldn't articulate them in ways that would be 
+                                    collectively recognized. They knew something was wrong, but the shared vocabulary didn't exist.
+                                </p>
+                                <p className="text-gray-700">
+                                    This isn't just "lacking words"—it's a structural problem where dominant groups control 
+                                    concept-formation, leaving marginalized groups unable to make their experiences legible.
+                                </p>
+                            </div>
+
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3">The Solution: Concept-Coining & Lexicon Building</h3>
+                            
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                <p className="font-semibold text-gray-900 mb-2">Create Space for New Concepts:</p>
+                                <ul className="space-y-2 text-gray-700">
+                                    <li>• <strong>Concept-Coining Option:</strong> Allow students to define needed terms (with justification)</li>
+                                    <li>• <strong>Living Glossary:</strong> Public lexicon with "introduced by / date / next review"</li>
+                                    <li>• <strong>Scheduled Reviews:</strong> Regular updates when new experiences need names</li>
+                                    <li>• <strong>Community Authority:</strong> Those experiencing patterns get primary voice in naming</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Real-World Example:</h4>
+                                <p className="text-gray-700 text-sm">
+                                    The term "intersectionality" (Kimberlé Crenshaw, 1989) made it possible to name how 
+                                    Black women's experiences couldn't be captured by talking about "racism" or "sexism" separately. 
+                                    Once named, the pattern became collectively actionable. This is hermeneutical justice in action.
+                                </p>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">ABCD Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Context (C):</strong> Conceptual infrastructure shapes what's sayable</li>
+                                    <li><strong>Dynamics (D):</strong> New concepts enable pattern recognition → collective response</li>
+                                    <li><strong>Agency (A):</strong> Naming restores capacity to articulate and advocate</li>
+                                    <li><strong>Beauty (B):</strong> When concepts finally fit experience, the clarity is compelling</li>
+                                </ul>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Four-Levels Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Capacity:</strong> People can recognize patterns in their experience</li>
+                                    <li><strong>Capability:</strong> Shared concepts make patterns expressible</li>
+                                    <li><strong>Constructor:</strong> Living glossaries persist across membership changes</li>
+                                    <li><strong>Meta-Constructor:</strong> Scheduled lexicon reviews when concepts prove inadequate</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 my-6">
+                                <h4 className="font-semibold text-yellow-900 mb-2">PRF Connection:</h4>
+                                <p className="text-gray-700 text-sm">
+                                    Different Phenomenal Reference Frames reveal different patterns. Dominant groups' PRFs 
+                                    shaped which experiences got named first. Justice requires attending to PRFs that haven't 
+                                    yet influenced concept-formation—letting those experiencing patterns lead the naming.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowScenarios(true)}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Start Practice Scenarios →
+                        </button>
+                    </div>
+                );
+            }
+
+            const scenario = scenarios[currentScenario];
+
             return (
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Hermeneutical Justice</h2>
-                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
-                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
-                        Continue to Pluralism →
-                    </button>
+                    <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                        Hermeneutical Justice - Scenario {currentScenario + 1} of {scenarios.length}
+                    </h3>
+
+                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">Scenario:</h4>
+                        <p className="text-gray-700">{scenario.scenario}</p>
+                    </div>
+
+                    <p className="font-semibold text-gray-900 mb-4">{scenario.question}</p>
+
+                    <div className="space-y-3 mb-6">
+                        {scenario.options.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleScenarioAnswer(option.id)}
+                                disabled={scenarioAnswer !== null}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    scenarioAnswer === option.id
+                                        ? option.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                                        : scenarioAnswer && option.correct ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                            >
+                                <div className="flex items-start">
+                                    <span className="font-bold mr-3">{option.id}.</span>
+                                    <p className="flex-1">{option.text}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {scenarioAnswer && (
+                        <>
+                            <div className={`p-4 rounded-lg mb-4 ${
+                                practiceResults[scenario.id]?.correct
+                                    ? 'bg-green-50 border-l-4 border-green-500'
+                                    : 'bg-red-50 border-l-4 border-red-500'
+                            }`}>
+                                <p className="text-sm font-semibold mb-2">
+                                    {practiceResults[scenario.id]?.correct ? '✓ Correct!' : '✗ Not quite'}
+                                </p>
+                                <p className="text-sm text-gray-700 mb-3">{scenario.explanation}</p>
+                                
+                                <div className="bg-white p-3 rounded mt-3">
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">ABCD Connection:</p>
+                                    <p className="text-xs text-gray-700 mb-2">{scenario.abcdConnection}</p>
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">Four-Levels Connection:</p>
+                                    <p className="text-xs text-gray-700">{scenario.fourLevelsConnection}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleNextScenario}
+                                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                {currentScenario < scenarios.length - 1 ? 'Next Scenario →' : 'Complete Section →'}
+                            </button>
+                        </>
+                    )}
+
+                    {Object.keys(practiceResults).length === scenarios.length && (
+                        <button
+                            onClick={onNext}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors mt-6"
+                        >
+                            Continue to Pluralism by Design →
+                        </button>
+                    )}
                 </div>
             );
         }
 
+        // Pluralism by Design Section - FULL IMPLEMENTATION
         function PluralismSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            const [currentScenario, setCurrentScenario] = useState(0);
+            const [scenarioAnswer, setScenarioAnswer] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+
+            const scenarios = PRACTICE_SCENARIOS.pluralism;
+
+            const handleScenarioAnswer = (optionId) => {
+                setScenarioAnswer(optionId);
+                const scenario = scenarios[currentScenario];
+                const correct = scenario.options.find(o => o.id === optionId).correct;
+                
+                const newResults = {
+                    ...practiceResults,
+                    [scenario.id]: { correct, selectedAnswer: optionId }
+                };
+                setPracticeResults(newResults);
+            };
+
+            const handleNextScenario = () => {
+                if (currentScenario < scenarios.length - 1) {
+                    setCurrentScenario(currentScenario + 1);
+                    setScenarioAnswer(null);
+                } else {
+                    const correct = Object.values(practiceResults).filter(r => r.correct).length;
+                    const total = scenarios.length;
+                    const percentage = (correct / total) * 100;
+                    const mastery = calculateMastery(percentage);
+                    onComplete(mastery);
+                }
+            };
+
+            if (!showScenarios) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Pluralism by Design</h2>
+                        
+                        <div className="prose prose-lg max-w-none mb-8">
+                            <p className="text-gray-700 mb-4">
+                                <strong>Pluralism by design</strong> means building systems that recognize multiple valid 
+                                forms of knowledge and evidence—without treating non-dominant methods as second-class.
+                            </p>
+
+                            <div className="bg-rainbow-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h3 className="text-lg font-semibold text-purple-900 mb-2">The Problem: Monocultures of Method</h3>
+                                <p className="text-gray-700 mb-3">
+                                    Many institutions operate with narrow conceptions of valid knowledge:
+                                </p>
+                                <ul className="space-y-1 text-gray-700 text-sm">
+                                    <li>• Only written text-based analysis is "real" scholarship</li>
+                                    <li>• Only quantitative data is "objective"</li>
+                                    <li>• Only individual authorship demonstrates mastery</li>
+                                    <li>• Only certain citation formats signal seriousness</li>
+                                </ul>
+                                <p className="text-gray-700 mt-3">
+                                    This excludes oral traditions, relational knowing, community-verified wisdom, 
+                                    practice-based expertise, and collaborative inquiry.
+                                </p>
+                            </div>
+
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3">The Solution: Multi-Track Evidence Systems</h3>
+                            
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                <p className="font-semibold text-gray-900 mb-3">Key Principle: <span className="text-purple-600">Different Methods, Same Standards</span></p>
+                                <p className="text-gray-700 mb-3">Example for "Understanding Recognition Theory":</p>
+                                
+                                <div className="space-y-3">
+                                    <div className="bg-blue-50 p-3 rounded">
+                                        <p className="font-semibold text-blue-900 text-sm mb-1">Track A - Textual:</p>
+                                        <p className="text-xs text-gray-700">Close reading of philosophical text, engage scholarly interpretations, address objections</p>
+                                    </div>
+                                    <div className="bg-green-50 p-3 rounded">
+                                        <p className="font-semibold text-green-900 text-sm mb-1">Track B - Relational:</p>
+                                        <p className="text-xs text-gray-700">Interview protocol with community members, consent forms, transcripts, analytic memo connecting to concepts</p>
+                                    </div>
+                                </div>
+                                
+                                <p className="text-sm text-gray-700 mt-3 italic">
+                                    Both demonstrate understanding. Both require evidence, analysis, conceptual precision. 
+                                    Different methods, not different standards.
+                                </p>
+                            </div>
+
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 my-6">
+                                <h4 className="font-semibold text-yellow-900 mb-2">Two-Eyed Seeing (Etuaptmumk)</h4>
+                                <p className="text-gray-700 text-sm">
+                                    Mi'kmaq concept: seeing with one eye through Indigenous knowledge, one eye through 
+                                    Western science. Not choosing between, but holding both simultaneously. Complementarity, 
+                                    not competition. Each reveals what the other misses.
+                                </p>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">ABCD Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Context (C):</strong> Protected lanes for different knowledge forms</li>
+                                    <li><strong>Agency (A):</strong> Students author in frameworks matching strengths/communities</li>
+                                    <li><strong>Beauty (B):</strong> Awe at what becomes visible through multiple lenses</li>
+                                    <li><strong>Dynamics (D):</strong> Feedback shows what each method reveals</li>
+                                </ul>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Four-Levels Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Capacity:</strong> Multiple ways of knowing exist but are suppressed</li>
+                                    <li><strong>Capability:</strong> Clear specifications for multiple evidence tracks</li>
+                                    <li><strong>Constructor:</strong> Dual-track rubrics with exemplars persist year-to-year</li>
+                                    <li><strong>Meta-Constructor:</strong> Reviews ensure both tracks maintain equal standing</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Embeddedness Insight:</h4>
+                                <p className="text-gray-700 text-sm">
+                                    Knowledge practices are embedded in cultural and historical contexts. "Universal" 
+                                    methods often reflect particular cultural traditions presented as neutral. True pluralism 
+                                    requires recognizing this embeddedness and creating structural space for alternatives.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowScenarios(true)}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Start Practice Scenarios →
+                        </button>
+                    </div>
+                );
+            }
+
+            const scenario = scenarios[currentScenario];
+
             return (
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Pluralism by Design</h2>
-                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
-                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
-                        Continue to Repair & Recognition →
-                    </button>
+                    <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                        Pluralism by Design - Scenario {currentScenario + 1} of {scenarios.length}
+                    </h3>
+
+                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">Scenario:</h4>
+                        <p className="text-gray-700">{scenario.scenario}</p>
+                    </div>
+
+                    <p className="font-semibold text-gray-900 mb-4">{scenario.question}</p>
+
+                    <div className="space-y-3 mb-6">
+                        {scenario.options.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleScenarioAnswer(option.id)}
+                                disabled={scenarioAnswer !== null}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    scenarioAnswer === option.id
+                                        ? option.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                                        : scenarioAnswer && option.correct ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                            >
+                                <div className="flex items-start">
+                                    <span className="font-bold mr-3">{option.id}.</span>
+                                    <p className="flex-1">{option.text}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {scenarioAnswer && (
+                        <>
+                            <div className={`p-4 rounded-lg mb-4 ${
+                                practiceResults[scenario.id]?.correct
+                                    ? 'bg-green-50 border-l-4 border-green-500'
+                                    : 'bg-red-50 border-l-4 border-red-500'
+                            }`}>
+                                <p className="text-sm font-semibold mb-2">
+                                    {practiceResults[scenario.id]?.correct ? '✓ Correct!' : '✗ Not quite'}
+                                </p>
+                                <p className="text-sm text-gray-700 mb-3">{scenario.explanation}</p>
+                                
+                                <div className="bg-white p-3 rounded mt-3">
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">ABCD Connection:</p>
+                                    <p className="text-xs text-gray-700 mb-2">{scenario.abcdConnection}</p>
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">Four-Levels Connection:</p>
+                                    <p className="text-xs text-gray-700">{scenario.fourLevelsConnection}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleNextScenario}
+                                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                {currentScenario < scenarios.length - 1 ? 'Next Scenario →' : 'Complete Section →'}
+                            </button>
+                        </>
+                    )}
+
+                    {Object.keys(practiceResults).length === scenarios.length && (
+                        <button
+                            onClick={onNext}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors mt-6"
+                        >
+                            Continue to Repair & Recognition →
+                        </button>
+                    )}
                 </div>
             );
         }
 
+        // Repair & Recognition Section - FULL IMPLEMENTATION
         function RepairSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            const [currentScenario, setCurrentScenario] = useState(0);
+            const [scenarioAnswer, setScenarioAnswer] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+
+            const scenarios = PRACTICE_SCENARIOS.repair;
+
+            const handleScenarioAnswer = (optionId) => {
+                setScenarioAnswer(optionId);
+                const scenario = scenarios[currentScenario];
+                const correct = scenario.options.find(o => o.id === optionId).correct;
+                
+                const newResults = {
+                    ...practiceResults,
+                    [scenario.id]: { correct, selectedAnswer: optionId }
+                };
+                setPracticeResults(newResults);
+            };
+
+            const handleNextScenario = () => {
+                if (currentScenario < scenarios.length - 1) {
+                    setCurrentScenario(currentScenario + 1);
+                    setScenarioAnswer(null);
+                } else {
+                    const correct = Object.values(practiceResults).filter(r => r.correct).length;
+                    const total = scenarios.length;
+                    const percentage = (correct / total) * 100;
+                    const mastery = calculateMastery(percentage);
+                    onComplete(mastery);
+                }
+            };
+
+            if (!showScenarios) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Repair & Recognition</h2>
+                        
+                        <div className="prose prose-lg max-w-none mb-8">
+                            <p className="text-gray-700 mb-4">
+                                <strong>Repair and recognition</strong> means moving from acknowledgment to material accountability—
+                                turning "we hear you" into scheduled commitments with owners, resources, and public follow-through.
+                            </p>
+
+                            <div className="bg-red-50 border-l-4 border-red-500 p-6 my-6">
+                                <h3 className="text-lg font-semibold text-red-900 mb-2">The Problem: Recognition Without Remedy</h3>
+                                <p className="text-gray-700 mb-3">
+                                    Many institutions have learned to <em>listen</em>—conducting listening sessions, inviting testimony, 
+                                    expressing sympathy. But listening without material follow-through becomes extraction:
+                                </p>
+                                <ul className="space-y-1 text-gray-700 text-sm">
+                                    <li>• Communities share painful experiences</li>
+                                    <li>• Institutions issue statements</li>
+                                    <li>• Nothing changes</li>
+                                    <li>• Next year, same listening session happens again</li>
+                                </ul>
+                                <p className="text-gray-700 mt-3 font-semibold">
+                                    As Tuck & Yang argue: "Decolonization is not a metaphor." Recognition cannot be purely symbolic.
+                                </p>
+                            </div>
+
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3">The Solution: Mini-TRC Protocol</h3>
+                            
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                <p className="font-semibold text-gray-900 mb-3">
+                                    Truth and Reconciliation Commission Model (Adapted for Institutions)
+                                </p>
+                                
+                                <div className="space-y-3">
+                                    <div className="bg-blue-50 p-3 rounded">
+                                        <p className="font-semibold text-blue-900 text-sm mb-1">Phase 1: Truth-Telling</p>
+                                        <p className="text-xs text-gray-700">
+                                            Affected person narrates issue in their own terms. No interruptions. Active listening. 
+                                            Create safe, structured space.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="bg-green-50 p-3 rounded">
+                                        <p className="font-semibold text-green-900 text-sm mb-1">Phase 2: Recognition</p>
+                                        <p className="text-xs text-gray-700">
+                                            Formal written acknowledgment summarizing understanding. Names what went wrong. 
+                                            Validates experience without defensiveness.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="bg-yellow-50 p-3 rounded">
+                                        <p className="font-semibold text-yellow-900 text-sm mb-1">Phase 3: Remedy</p>
+                                        <p className="text-xs text-gray-700">
+                                            Concrete commitments with: specific action, owner responsible, resources allocated, 
+                                            completion date, success criteria. Material, not symbolic.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="bg-purple-50 p-3 rounded">
+                                        <p className="font-semibold text-purple-900 text-sm mb-1">Phase 4: Review</p>
+                                        <p className="text-xs text-gray-700">
+                                            Calendared follow-up (2-4 weeks). Did remedy occur? Was it sufficient? 
+                                            What additional actions needed?
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="bg-red-50 p-3 rounded">
+                                        <p className="font-semibold text-red-900 text-sm mb-1">Phase 5: Public Progress Note</p>
+                                        <p className="text-xs text-gray-700">
+                                            Monthly change-log (anonymized). Issues raised, actions taken, still in progress. 
+                                            Makes patterns visible.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Key Insight:</h4>
+                                <p className="text-gray-700 text-sm">
+                                    Justice requires <strong>iterative accountability</strong>, not one-time statements. 
+                                    Material conditions produced material harms and require material remedies. Words matter, 
+                                    but they must translate to resources, time, authority, and structural change.
+                                </p>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">ABCD Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Dynamics (D):</strong> Accountability loops replace one-time apologies</li>
+                                    <li><strong>Context (C):</strong> Formal procedures make repair reliable</li>
+                                    <li><strong>Agency (A):</strong> Affected people maintain standing throughout process</li>
+                                    <li><strong>Beauty (B):</strong> Dignity of being genuinely responded to</li>
+                                </ul>
+                            </div>
+
+                            <div className="connection-line my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Four-Levels Connection:</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>Capacity:</strong> People can name harms</li>
+                                    <li><strong>Capability:</strong> Clear procedures for response</li>
+                                    <li><strong>Constructor:</strong> Mini-TRC becomes standard protocol</li>
+                                    <li><strong>Meta-Constructor:</strong> Quarterly reviews with public change-log</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowScenarios(true)}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Start Practice Scenarios →
+                        </button>
+                    </div>
+                );
+            }
+
+            const scenario = scenarios[currentScenario];
+
             return (
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Repair & Recognition</h2>
-                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
-                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
-                        Continue to Integration →
-                    </button>
+                    <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                        Repair & Recognition - Scenario {currentScenario + 1} of {scenarios.length}
+                    </h3>
+
+                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">Scenario:</h4>
+                        <p className="text-gray-700">{scenario.scenario}</p>
+                    </div>
+
+                    <p className="font-semibold text-gray-900 mb-4">{scenario.question}</p>
+
+                    <div className="space-y-3 mb-6">
+                        {scenario.options.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleScenarioAnswer(option.id)}
+                                disabled={scenarioAnswer !== null}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    scenarioAnswer === option.id
+                                        ? option.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                                        : scenarioAnswer && option.correct ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                            >
+                                <div className="flex items-start">
+                                    <span className="font-bold mr-3">{option.id}.</span>
+                                    <p className="flex-1">{option.text}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {scenarioAnswer && (
+                        <>
+                            <div className={`p-4 rounded-lg mb-4 ${
+                                practiceResults[scenario.id]?.correct
+                                    ? 'bg-green-50 border-l-4 border-green-500'
+                                    : 'bg-red-50 border-l-4 border-red-500'
+                            }`}>
+                                <p className="text-sm font-semibold mb-2">
+                                    {practiceResults[scenario.id]?.correct ? '✓ Correct!' : '✗ Not quite'}
+                                </p>
+                                <p className="text-sm text-gray-700 mb-3">{scenario.explanation}</p>
+                                
+                                <div className="bg-white p-3 rounded mt-3">
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">ABCD Connection:</p>
+                                    <p className="text-xs text-gray-700 mb-2">{scenario.abcdConnection}</p>
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">Four-Levels Connection:</p>
+                                    <p className="text-xs text-gray-700">{scenario.fourLevelsConnection}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleNextScenario}
+                                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                {currentScenario < scenarios.length - 1 ? 'Next Scenario →' : 'Complete Section →'}
+                            </button>
+                        </>
+                    )}
+
+                    {Object.keys(practiceResults).length === scenarios.length && (
+                        <button
+                            onClick={onNext}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors mt-6"
+                        >
+                            Continue to Framework Integration →
+                        </button>
+                    )}
                 </div>
             );
         }
 
+        // Integration Section - FULL IMPLEMENTATION
         function IntegrationSection({ practiceResults, setPracticeResults, onComplete, onNext }) {
+            const [currentScenario, setCurrentScenario] = useState(0);
+            const [scenarioAnswer, setScenarioAnswer] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+
+            const scenarios = PRACTICE_SCENARIOS.integration;
+
+            const handleScenarioAnswer = (optionId) => {
+                setScenarioAnswer(optionId);
+                const scenario = scenarios[currentScenario];
+                const correct = scenario.options.find(o => o.id === optionId).correct;
+                
+                const newResults = {
+                    ...practiceResults,
+                    [scenario.id]: { correct, selectedAnswer: optionId }
+                };
+                setPracticeResults(newResults);
+            };
+
+            const handleNextScenario = () => {
+                if (currentScenario < scenarios.length - 1) {
+                    setCurrentScenario(currentScenario + 1);
+                    setScenarioAnswer(null);
+                } else {
+                    const correct = Object.values(practiceResults).filter(r => r.correct).length;
+                    const total = scenarios.length;
+                    const percentage = (correct / total) * 100;
+                    const mastery = calculateMastery(percentage);
+                    onComplete(mastery);
+                }
+            };
+
+            if (!showScenarios) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Framework Integration</h2>
+                        
+                        <div className="prose prose-lg max-w-none mb-8">
+                            <p className="text-gray-700 mb-6">
+                                Now it's time to bring everything together: testimonial justice, hermeneutical justice, 
+                                pluralism, repair—all connected through ABCD, Four Levels, PRF, and social embeddedness.
+                            </p>
+
+                            <div className="bg-gradient-to-br from-purple-100 to-blue-100 border-2 border-purple-300 p-6 rounded-lg mb-6">
+                                <h3 className="text-xl font-semibold text-purple-900 mb-3">The Integration Challenge</h3>
+                                <p className="text-gray-700 mb-3">
+                                    Real epistemic injustices are rarely pure types. They typically involve:
+                                </p>
+                                <ul className="space-y-2 text-gray-700 text-sm">
+                                    <li>• <strong>Testimonial injustice</strong> (credibility discounts)</li>
+                                    <li>• <strong>Hermeneutical gaps</strong> (missing concepts)</li>
+                                    <li>• <strong>Structural exclusions</strong> (methods that don't recognize certain knowledge)</li>
+                                    <li>• <strong>Failed repair</strong> (no material follow-through)</li>
+                                </ul>
+                                <p className="text-gray-700 mt-3 font-semibold">
+                                    Effective intervention requires diagnosing <em>which levels</em> are implicated and 
+                                    <em>which ABCD principles</em> are being violated.
+                                </p>
+                            </div>
+
+                            <h3 className="text-2xl font-semibold text-gray-900 mb-4">The Full Diagnostic Framework</h3>
+
+                            <div className="grid md:grid-cols-2 gap-4 mb-6">
+                                <div className="framework-card bg-blue-50 p-4 rounded-lg">
+                                    <h4 className="font-bold text-blue-900 mb-2">ABCD Lens</h4>
+                                    <ul className="space-y-1 text-xs text-gray-700">
+                                        <li><strong>A:</strong> Whose voice is missing/discounted?</li>
+                                        <li><strong>B:</strong> Does the solution reveal possibilities?</li>
+                                        <li><strong>C:</strong> What gates prevent expression?</li>
+                                        <li><strong>D:</strong> What feedbacks maintain injustice?</li>
+                                    </ul>
+                                </div>
+
+                                <div className="framework-card bg-green-50 p-4 rounded-lg">
+                                    <h4 className="font-bold text-green-900 mb-2">Four-Levels Diagnosis</h4>
+                                    <ul className="space-y-1 text-xs text-gray-700">
+                                        <li><strong>💎 Capacity:</strong> What's suppressed?</li>
+                                        <li><strong>⚙️ Capability:</strong> What specs/methods needed?</li>
+                                        <li><strong>🏗️ Constructor:</strong> What procedures persist?</li>
+                                        <li><strong>🔄 Meta:</strong> How does system improve?</li>
+                                    </ul>
+                                </div>
+
+                                <div className="framework-card bg-yellow-50 p-4 rounded-lg">
+                                    <h4 className="font-bold text-yellow-900 mb-2">PRF Considerations</h4>
+                                    <ul className="space-y-1 text-xs text-gray-700">
+                                        <li>• Which PRFs are centered/marginalized?</li>
+                                        <li>• Whose situated knowledge is missing?</li>
+                                        <li>• How do different PRFs reveal blind spots?</li>
+                                    </ul>
+                                </div>
+
+                                <div className="framework-card bg-purple-50 p-4 rounded-lg">
+                                    <h4 className="font-bold text-purple-900 mb-2">Embeddedness Scales</h4>
+                                    <ul className="space-y-1 text-xs text-gray-700">
+                                        <li>• Individual: Personal experience</li>
+                                        <li>• Interpersonal: Dialogue patterns</li>
+                                        <li>• Institutional: Policies/rubrics</li>
+                                        <li>• Cultural: Shared concepts/norms</li>
+                                        <li>• Historical: Path dependencies</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h4 className="font-semibold text-purple-900 mb-2">Integration Strategy:</h4>
+                                <ol className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>1. Map the Problem:</strong> Which injustices? Which levels? Which ABCD violations?</li>
+                                    <li><strong>2. Design Multi-Level Intervention:</strong> Rarely one-level solutions</li>
+                                    <li><strong>3. Build Constructors:</strong> Make justice reliable, not personality-dependent</li>
+                                    <li><strong>4. Create Meta-Constructors:</strong> Systems that learn and adapt</li>
+                                    <li><strong>5. Ensure Material Follow-Through:</strong> Not just recognition</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowScenarios(true)}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Start Integration Scenarios →
+                        </button>
+                    </div>
+                );
+            }
+
+            const scenario = scenarios[currentScenario];
+
             return (
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Framework Integration</h2>
-                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
-                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
-                        Continue to Design Exercise →
-                    </button>
+                    <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                        Integration - Scenario {currentScenario + 1} of {scenarios.length}
+                    </h3>
+
+                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">Scenario:</h4>
+                        <p className="text-gray-700">{scenario.scenario}</p>
+                    </div>
+
+                    <p className="font-semibold text-gray-900 mb-4">{scenario.question}</p>
+
+                    <div className="space-y-3 mb-6">
+                        {scenario.options.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleScenarioAnswer(option.id)}
+                                disabled={scenarioAnswer !== null}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    scenarioAnswer === option.id
+                                        ? option.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                                        : scenarioAnswer && option.correct ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                            >
+                                <div className="flex items-start">
+                                    <span className="font-bold mr-3">{option.id}.</span>
+                                    <p className="flex-1">{option.text}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {scenarioAnswer && (
+                        <>
+                            <div className={`p-4 rounded-lg mb-4 ${
+                                practiceResults[scenario.id]?.correct
+                                    ? 'bg-green-50 border-l-4 border-green-500'
+                                    : 'bg-red-50 border-l-4 border-red-500'
+                            }`}>
+                                <p className="text-sm font-semibold mb-2">
+                                    {practiceResults[scenario.id]?.correct ? '✓ Correct!' : '✗ Not quite'}
+                                </p>
+                                <p className="text-sm text-gray-700 mb-3">{scenario.explanation}</p>
+                                
+                                <div className="bg-white p-3 rounded mt-3">
+                                    <p className="text-xs font-semibold text-purple-900 mb-1">Full Framework Connection:</p>
+                                    <p className="text-xs text-gray-700 mb-2">{scenario.abcdConnection}</p>
+                                    <p className="text-xs text-gray-700">{scenario.fourLevelsConnection}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleNextScenario}
+                                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                {currentScenario < scenarios.length - 1 ? 'Next Scenario →' : 'Complete Section →'}
+                            </button>
+                        </>
+                    )}
+
+                    {Object.keys(practiceResults).length === scenarios.length && (
+                        <button
+                            onClick={onNext}
+                            className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors mt-6"
+                        >
+                            Continue to Design Exercise →
+                        </button>
+                    )}
                 </div>
             );
         }
 
+        // Design Exercise Section - FULL IMPLEMENTATION
         function DesignExerciseSection({ designExercise, setDesignExercise, onComplete, onNext }) {
+            const [step, setStep] = useState(designExercise?.step || 1);
+            const [responses, setResponses] = useState(designExercise?.responses || {
+                assessment: '',
+                diagnosis: '',
+                dualTrack: '',
+                justiceFeatures: '',
+                metaConstructor: ''
+            });
+
+            const handleSubmit = () => {
+                const wordCount = Object.values(responses).join(' ').split(/\s+/).length;
+                const exercise = { step: 6, responses, wordCount, completed: new Date().toISOString() };
+                setDesignExercise(exercise);
+                onComplete('proficient');
+            };
+
+            const allFieldsFilled = () => {
+                return Object.values(responses).every(r => r.length >= 50);
+            };
+
             return (
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Design Exercise</h2>
-                    <p className="text-gray-700 mb-6">Content coming in full implementation...</p>
-                    <button onClick={onNext} className="px-6 py-3 bg-purple-600 text-white rounded-lg">
-                        Continue to Assessment →
-                    </button>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Design Exercise: Redesign for Justice</h2>
+                    
+                    <div className="prose prose-lg max-w-none mb-8">
+                        <p className="text-gray-700 mb-6">
+                            Apply everything you've learned to redesign an actual assessment for epistemic justice. 
+                            This is your capstone exercise demonstrating mastery of the full toolkit.
+                        </p>
+
+                        <div className="bg-gradient-to-br from-purple-100 to-blue-100 border-2 border-purple-300 p-6 rounded-lg mb-6">
+                            <h3 className="text-xl font-semibold text-purple-900 mb-3">The Task</h3>
+                            <p className="text-gray-700 mb-3">
+                                Choose an assessment you're familiar with (from your own courses, your teaching, or a hypothetical one). 
+                                Redesign it using:
+                            </p>
+                            <ul className="space-y-1 text-gray-700">
+                                <li>✓ Testimonial justice (credibility calibration)</li>
+                                <li>✓ Hermeneutical justice (concept-coining options)</li>
+                                <li>✓ Pluralism by design (multiple evidence tracks)</li>
+                                <li>✓ Repair mechanisms (right-of-reply, change-logs)</li>
+                                <li>✓ ABCD and Four-Levels analysis</li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Step 1: Choose Assessment */}
+                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                                <h4 className="font-bold text-gray-900 mb-3">
+                                    Step 1: Describe the Assessment (100+ words)
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    What assessment are you redesigning? Describe the current format, requirements, and evaluation criteria.
+                                </p>
+                                <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    rows="6"
+                                    placeholder="Example: Final paper for 'Ethics & Society' course. Current requirement: 2500-word argumentative essay citing 5+ scholarly sources, defending a thesis about a contemporary ethical issue. Evaluated on: thesis clarity, argument structure, use of sources, originality, writing quality..."
+                                    value={responses.assessment}
+                                    onChange={(e) => setResponses({...responses, assessment: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {responses.assessment.split(/\s+/).filter(w => w.length > 0).length} words
+                                </p>
+                            </div>
+
+                            {/* Step 2: Diagnose Problems */}
+                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                                <h4 className="font-bold text-gray-900 mb-3">
+                                    Step 2: Diagnose Epistemic Justice Problems (150+ words)
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    Using ABCD and Four-Levels, identify what epistemic injustices this assessment creates or reinforces.
+                                </p>
+                                <div className="bg-blue-50 p-3 rounded text-xs text-gray-700 mb-3">
+                                    <p className="font-semibold mb-1">Prompts to consider:</p>
+                                    <ul className="space-y-1">
+                                        <li>• Context (C): What hidden gates exist? (format, register, credibility cues)</li>
+                                        <li>• Agency (A): Whose knowledge forms are excluded?</li>
+                                        <li>• Four-Levels: Is this capacity suppression? Missing capabilities? Constructor failure?</li>
+                                    </ul>
+                                </div>
+                                <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    rows="7"
+                                    placeholder="Example: CONTEXT problem: 'Scholarly sources only' excludes community knowledge, oral traditions. '2500 words' privileges certain rhetorical traditions. CAPACITY suppression: Students from oral cultures have capacity for rigorous analysis but context suppresses expression. CAPABILITY gap: No clear specs for what counts as 'good argument' beyond insider norms..."
+                                    value={responses.diagnosis}
+                                    onChange={(e) => setResponses({...responses, diagnosis: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {responses.diagnosis.split(/\s+/).filter(w => w.length > 0).length} words
+                                </p>
+                            </div>
+
+                            {/* Step 3: Design Dual-Track System */}
+                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                                <h4 className="font-bold text-gray-900 mb-3">
+                                    Step 3: Design Dual-Track Evidence System (150+ words)
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    Specify two (or more) valid evidence tracks that demonstrate the same learning objectives.
+                                </p>
+                                <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    rows="7"
+                                    placeholder="Example: TRACK A (Textual): Traditional essay format, scholarly sources, written argument. Requirements: [specific]. TRACK B (Relational): Interview-based analysis with community members + analytic memo connecting to course concepts. Requirements: consent forms, transcripts, 1000-word memo. Both demonstrate understanding of ethical frameworks and ability to apply them to real situations."
+                                    value={responses.dualTrack}
+                                    onChange={(e) => setResponses({...responses, dualTrack: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {responses.dualTrack.split(/\s+/).filter(w => w.length > 0).length} words
+                                </p>
+                            </div>
+
+                            {/* Step 4: Add Justice Features */}
+                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                                <h4 className="font-bold text-gray-900 mb-3">
+                                    Step 4: Add Justice Features (150+ words)
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    Specify credibility calibration, concept-coining options, and repair mechanisms.
+                                </p>
+                                <div className="bg-green-50 p-3 rounded text-xs text-gray-700 mb-3">
+                                    <p className="font-semibold mb-1">Include:</p>
+                                    <ul className="space-y-1">
+                                        <li>• <strong>Credibility Calibration:</strong> Replace vague criteria with explicit descriptors</li>
+                                        <li>• <strong>Concept-Coining:</strong> Option to define new terms with justification</li>
+                                        <li>• <strong>Right-of-Reply:</strong> Protocol for challenging evaluations</li>
+                                    </ul>
+                                </div>
+                                <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    rows="7"
+                                    placeholder="Example: CREDIBILITY CALIBRATION: Instead of 'sophisticated analysis' use 'identifies 3+ core concepts, explains relationships, addresses counterarguments.' CONCEPT-COINING: Students may define 1 new term (100 words) if existing vocabulary doesn't capture their analysis. RIGHT-OF-REPLY: Students may submit 200-word statement contesting evaluation within 5 days. Faculty responds in writing within 5 days."
+                                    value={responses.justiceFeatures}
+                                    onChange={(e) => setResponses({...responses, justiceFeatures: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {responses.justiceFeatures.split(/\s+/).filter(w => w.length > 0).length} words
+                                </p>
+                            </div>
+
+                            {/* Step 5: Meta-Constructor */}
+                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
+                                <h4 className="font-bold text-gray-900 mb-3">
+                                    Step 5: Build Meta-Constructor (100+ words)
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    How will this assessment improve over time? Specify review mechanisms.
+                                </p>
+                                <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    rows="6"
+                                    placeholder="Example: META-CONSTRUCTOR: Week 6 review with student reps to identify problems. End-of-term review examining: (1) Which track did students choose? (2) Were outcomes comparable? (3) What right-of-reply issues emerged? (4) Do rubric changes improve justice? Public change-log posted to course site showing: issues raised, actions taken, rubric revisions."
+                                    value={responses.metaConstructor}
+                                    onChange={(e) => setResponses({...responses, metaConstructor: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    {responses.metaConstructor.split(/\s+/).filter(w => w.length > 0).length} words
+                                </p>
+                            </div>
+                        </div>
+
+                        {allFieldsFilled() ? (
+                            <div className="bg-green-50 border-l-4 border-green-500 p-6 mt-6">
+                                <p className="font-semibold text-green-900 mb-2">✓ Design Complete!</p>
+                                <p className="text-sm text-gray-700 mb-3">
+                                    You've created a comprehensive redesign addressing epistemic justice at multiple levels. 
+                                    Total word count: {Object.values(responses).join(' ').split(/\s+/).filter(w => w.length > 0).length}
+                                </p>
+                                <button
+                                    onClick={handleSubmit}
+                                    className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                                >
+                                    Submit Design & Continue to Assessment →
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 mt-6">
+                                <p className="text-sm text-gray-700">
+                                    Complete all sections with at least 50 words each to proceed to final assessment.
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             );
         }
 
+        // Assessment Section - FULL IMPLEMENTATION
         function AssessmentSection({ studentInfo, sessionData, sectionProgress, practiceResults, designExercise, onComplete }) {
+            const [answers, setAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+            const [finalResults, setFinalResults] = useState(null);
+
+            const questions = [
+                {
+                    id: 'q1',
+                    question: 'A working-class student\'s insight about economic inequality is dismissed as "personal opinion" while a wealthy student\'s identical insight is praised as "excellent analysis." What type of injustice and what intervention?',
+                    options: [
+                        { id: 'A', text: 'Hermeneutical injustice - need new concepts', correct: false },
+                        { id: 'B', text: 'Testimonial injustice - need credibility calibration at Capability level', correct: true },
+                        { id: 'C', text: 'No injustice - just different presentation styles', correct: false },
+                        { id: 'D', text: 'Capability gap - student needs training', correct: false }
+                    ]
+                },
+                {
+                    id: 'q2',
+                    question: 'A community lacks terms to articulate patterns of harm they experience. Which level and ABCD principle is primary?',
+                    options: [
+                        { id: 'A', text: 'Capacity problem, Agency principle', correct: false },
+                        { id: 'B', text: 'Meta-Constructor problem, Dynamics principle', correct: true },
+                        { id: 'C', text: 'Capability problem, Context principle', correct: false },
+                        { id: 'D', text: 'Constructor problem, Beauty principle', correct: false }
+                    ]
+                },
+                {
+                    id: 'q3',
+                    question: 'A university offers two evidence tracks (textual analysis OR community interviews) for the same learning objective. What makes this pluralism rather than "dumbing down"?',
+                    options: [
+                        { id: 'A', text: 'It makes things easier for struggling students', correct: false },
+                        { id: 'B', text: 'Both tracks have equal rigor standards, just different evidence forms', correct: true },
+                        { id: 'C', text: 'The interview track is less academic', correct: false },
+                        { id: 'D', text: 'It accommodates learning disabilities', correct: false }
+                    ]
+                },
+                {
+                    id: 'q4',
+                    question: 'After a bias incident, institution issues statement but nothing changes. What\'s the Mini-TRC solution?',
+                    options: [
+                        { id: 'A', text: 'Better communication of the statement', correct: false },
+                        { id: 'B', text: 'Truth + Recognition + Remedy (owner/resources/date) + Review + Change-log', correct: true },
+                        { id: 'C', text: 'More diversity training', correct: false },
+                        { id: 'D', text: 'Acknowledge and move on', correct: false }
+                    ]
+                },
+                {
+                    id: 'q5',
+                    question: 'Different Phenomenal Reference Frames (PRFs) reveal different aspects of reality. How does this connect to epistemic justice?',
+                    options: [
+                        { id: 'A', text: 'All PRFs are equally valid regardless of evidence', correct: false },
+                        { id: 'B', text: 'Including diverse PRFs improves knowledge by revealing blind spots', correct: true },
+                        { id: 'C', text: 'PRFs are just subjective perspectives', correct: false },
+                        { id: 'D', text: 'Only objective PRFs matter', correct: false }
+                    ]
+                },
+                {
+                    id: 'q6',
+                    question: 'An assessment excludes oral traditions and requires "scholarly sources only." Using Four Levels, where is the problem and intervention?',
+                    options: [
+                        { id: 'A', text: 'Capacity - people lack oral traditions', correct: false },
+                        { id: 'B', text: 'Context suppressing Capacity - intervention: redesign Context at Capability level', correct: true },
+                        { id: 'C', text: 'Meta-Constructor - need better review', correct: false },
+                        { id: 'D', text: 'No problem - scholarly standards are universal', correct: false }
+                    ]
+                }
+            ];
+
+            const handleSubmit = () => {
+                const correct = questions.filter(q => answers[q.id] === q.options.find(o => o.correct).id).length;
+                const percentage = Math.round((correct / questions.length) * 100);
+                
+                const results = {
+                    answers,
+                    correct,
+                    total: questions.length,
+                    percentage
+                };
+                
+                setShowResults(true);
+                setFinalResults(results);
+                onComplete(results);
+            };
+
+            const allAnswered = questions.every(q => answers[q.id]);
+
+            if (showResults && finalResults) {
+                return <CompletionCertificate 
+                    studentInfo={studentInfo}
+                    sessionData={{...sessionData, finalResults}}
+                    sectionProgress={sectionProgress}
+                    practiceResults={practiceResults}
+                    designExercise={designExercise}
+                    finalResults={finalResults}
+                />;
+            }
+
             return (
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Final Assessment & Completion</h2>
-                    <p className="text-gray-700 mb-6">Assessment and completion certificate coming in full implementation...</p>
+                <div className="space-y-8">
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Final Assessment</h2>
+                        <p className="text-lg text-gray-700 mb-8">
+                            Demonstrate your mastery of epistemic justice concepts, frameworks, and applications.
+                        </p>
+
+                        <div className="space-y-6">
+                            {questions.map((q, index) => (
+                                <div key={q.id} className="border-2 border-gray-200 rounded-lg p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                        Question {index + 1}: {q.question}
+                                    </h3>
+                                    
+                                    <div className="space-y-3">
+                                        {q.options.map(option => (
+                                            <button
+                                                key={option.id}
+                                                onClick={() => setAnswers({...answers, [q.id]: option.id})}
+                                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                                    answers[q.id] === option.id
+                                                        ? 'border-purple-500 bg-purple-50'
+                                                        : 'border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex items-start">
+                                                    <span className="font-bold mr-3">{option.id}.</span>
+                                                    <span className="flex-1">{option.text}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!allAnswered}
+                            className={`mt-8 w-full px-6 py-3 rounded-lg font-semibold transition-colors ${
+                                allAnswered
+                                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                        >
+                            {allAnswered ? 'Submit Assessment & Generate Certificate →' : 'Answer all questions to submit'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Completion Certificate Component - FULL IMPLEMENTATION
+        function CompletionCertificate({ studentInfo, sessionData, sectionProgress, practiceResults, designExercise, finalResults }) {
+            const generateCertificate = () => {
+                const calculateTime = (section) => {
+                    if (!section.startTime || !section.endTime) return 0;
+                    return Math.round((new Date(section.endTime) - new Date(section.startTime)) / 60000);
+                };
+
+                const totalTime = Object.values(sectionProgress).reduce((sum, section) => 
+                    sum + calculateTime(section), 0);
+
+                // Calculate practice scores
+                const testimonialCorrect = Object.values(practiceResults.testimonial || {}).filter(r => r.correct).length;
+                const testimonialTotal = PRACTICE_SCENARIOS.testimonial.length;
+                const hermeneuticalCorrect = Object.values(practiceResults.hermeneutical || {}).filter(r => r.correct).length;
+                const hermeneuticalTotal = PRACTICE_SCENARIOS.hermeneutical.length;
+                const pluralismCorrect = Object.values(practiceResults.pluralism || {}).filter(r => r.correct).length;
+                const pluralismTotal = PRACTICE_SCENARIOS.pluralism.length;
+                const repairCorrect = Object.values(practiceResults.repair || {}).filter(r => r.correct).length;
+                const repairTotal = PRACTICE_SCENARIOS.repair.length;
+                const integrationCorrect = Object.values(practiceResults.integration || {}).filter(r => r.correct).length;
+                const integrationTotal = PRACTICE_SCENARIOS.integration.length;
+
+                const designWordCount = designExercise?.wordCount || 0;
+
+                const overallScore = finalResults.percentage;
+                const passed = overallScore >= 75;
+                const masteryLevel = calculateMastery(overallScore);
+
+                return `═══════════════════════════════════════════════════════
+EPISTEMIC JUSTICE TOOLKIT
+Applied Critical Thinking Completion Certificate
+═══════════════════════════════════════════════════════
+
+STUDENT INFORMATION:
+  Name:           ${studentInfo.name}
+  Email:          ${studentInfo.email}
+  Course:         ${studentInfo.course}
+
+COMPLETION VERIFICATION:
+  Session ID:     ${sessionData.sessionId}
+  Started:        ${new Date(sessionData.startTime).toLocaleString()}
+  Completed:      ${new Date().toLocaleString()}
+  Total Time:     ${totalTime} minutes
+  Status:         ${passed ? '✓ PASSED' : '✗ NEEDS REVIEW'} (${overallScore}%)
+
+═══════════════════════════════════════════════════════
+PERFORMANCE SUMMARY
+═══════════════════════════════════════════════════════
+
+Overall Mastery Level: ${getMasteryLabel(masteryLevel)}
+
+Final Assessment: ${finalResults.correct}/${finalResults.total} (${overallScore}%)
+Required Threshold: 75%
+
+PRACTICE PERFORMANCE BY CONCEPT:
+
+Testimonial Justice:        ${testimonialCorrect}/${testimonialTotal} (${testimonialTotal > 0 ? Math.round((testimonialCorrect/testimonialTotal)*100) : 0}%)
+Hermeneutical Justice:      ${hermeneuticalCorrect}/${hermeneuticalTotal} (${hermeneuticalTotal > 0 ? Math.round((hermeneuticalCorrect/hermeneuticalTotal)*100) : 0}%)
+Pluralism by Design:        ${pluralismCorrect}/${pluralismTotal} (${pluralismTotal > 0 ? Math.round((pluralismCorrect/pluralismTotal)*100) : 0}%)
+Repair & Recognition:       ${repairCorrect}/${repairTotal} (${repairTotal > 0 ? Math.round((repairCorrect/repairTotal)*100) : 0}%)
+Framework Integration:      ${integrationCorrect}/${integrationTotal} (${integrationTotal > 0 ? Math.round((integrationCorrect/integrationTotal)*100) : 0}%)
+
+DESIGN EXERCISE:
+  Status:         ${designExercise?.completed ? '✓ Completed' : '✗ Not Completed'}
+  Word Count:     ${designWordCount} words
+  Quality:        ${designWordCount >= 500 ? 'Comprehensive' : designWordCount >= 300 ? 'Adequate' : 'Developing'}
+
+═══════════════════════════════════════════════════════
+SECTION BREAKDOWN
+═══════════════════════════════════════════════════════
+
+${Object.entries(sectionProgress).map(([id, section]) => `
+${id.toUpperCase()}:
+  Status: ${getMasteryLabel(section.status)}
+  Time Spent: ${calculateTime(section)} minutes
+`).join('\n')}
+
+═══════════════════════════════════════════════════════
+LEARNING OBJECTIVES ACHIEVED
+═══════════════════════════════════════════════════════
+
+✓ Testimonial Justice
+  - Recognize credibility discounts based on identity vs. evidence
+  - Apply credibility calibration to remove identity-coded cues
+  - Connect to Context (C) and Agency (A) in ABCD framework
+  - Intervene at Capability level (specifications)
+
+✓ Hermeneutical Justice
+  - Identify conceptual gaps that make experiences unintelligible
+  - Build living glossaries and concept-coining procedures
+  - Connect to Context (C) and Dynamics (D) in ABCD framework
+  - Intervene at Meta-Constructor level (lexicon reviews)
+
+✓ Pluralism by Design
+  - Design multi-track evidence systems with equal rigor
+  - Distinguish "different methods" from "different standards"
+  - Apply Two-Eyed Seeing (complementarity, not competition)
+  - Intervene at Constructor level (institutionalized procedures)
+
+✓ Repair & Recognition
+  - Move from acknowledgment to material accountability
+  - Apply Mini-TRC protocol: Truth, Recognition, Remedy, Review, Change-log
+  - Connect to Dynamics (D) in ABCD framework
+  - Intervene across all Four Levels
+
+✓ Framework Integration
+  - Map problems using ABCD lens (Agency, Beauty, Context, Dynamics)
+  - Diagnose using Four Levels (Capacity, Capability, Constructor, Meta-Constructor)
+  - Apply PRF considerations (situated knowledge, blind spots)
+  - Understand social embeddedness (individual → historical scales)
+
+✓ Design Application
+  - Redesign actual assessments for epistemic justice
+  - Specify dual-track evidence systems
+  - Build justice features (calibration, concept-coining, right-of-reply)
+  - Create meta-constructor mechanisms (review, accountability)
+
+═══════════════════════════════════════════════════════
+CONCEPTUAL MASTERY DEMONSTRATED
+═══════════════════════════════════════════════════════
+
+ABCD Framework Application:
+  ✓ Identified how Agency is recognized/suppressed
+  ✓ Recognized Beauty/Awe in plural approaches
+  ✓ Mapped Context gates and their effects
+  ✓ Traced Dynamics of feedback loops and patterns
+
+Four-Levels Diagnostic Skill:
+  ✓ Distinguished Capacity from Capability
+  ✓ Designed Constructors (persistent procedures)
+  ✓ Built Meta-Constructors (learning systems)
+  ✓ Matched interventions to appropriate levels
+
+PRF & Embeddedness Understanding:
+  ✓ Recognized how situated perspectives reveal different truths
+  ✓ Understood systemic nature of epistemic injustice
+  ✓ Connected individual experience to institutional patterns
+  ✓ Traced historical path dependencies
+
+═══════════════════════════════════════════════════════
+NEXT STEPS
+═══════════════════════════════════════════════════════
+
+${passed ? `✓ Toolkit Mastery Demonstrated
+
+You've shown ${masteryLevel === 'mastered' ? 'exceptional' : 'strong'} understanding 
+of epistemic justice as applied critical thinking. You can now:
+
+1. Diagnose epistemic injustices in real contexts
+2. Design multi-level interventions using ABCD & Four Levels
+3. Build fair knowledge practices (rubrics, protocols, review systems)
+4. Create accountability mechanisms that persist over time
+
+APPLY YOUR SKILLS:
+• Redesign assessments in your courses
+• Audit institutional procedures for hidden gates
+• Build concept-coining processes in your communities
+• Create Mini-TRC protocols for repair and accountability
+• Teach others these frameworks and tools` : 
+
+`⚠️ Review Recommended
+
+Your score of ${overallScore}% is below the 75% threshold.
+We recommend:
+
+1. Review sections where practice scores were below 80%
+2. Revisit ABCD and Four-Levels framework connections
+3. Study the integration scenarios carefully
+4. Complete design exercise more thoroughly
+5. Retake assessment when ready
+
+FOCUS AREAS:
+${testimonialCorrect < testimonialTotal ? '• Testimonial justice and credibility calibration\n' : ''}${hermeneuticalCorrect < hermeneuticalTotal ? '• Hermeneutical justice and concept-coining\n' : ''}${pluralismCorrect < pluralismTotal ? '• Pluralism by design and multi-track systems\n' : ''}${repairCorrect < repairTotal ? '• Repair mechanisms and Mini-TRC protocol\n' : ''}${integrationCorrect < integrationTotal ? '• Framework integration and multi-level analysis\n' : ''}`}
+
+═══════════════════════════════════════════════════════
+KEY TAKEAWAYS
+═══════════════════════════════════════════════════════
+
+1. EPISTEMIC JUSTICE ISN'T ABOUT BEING NICE
+   It's about building more accurate, robust knowledge by including
+   diverse perspectives and removing structural barriers.
+
+2. DIFFERENT PRFS REVEAL DIFFERENT TRUTHS
+   Wheelchair users see accessibility barriers walking people miss.
+   Working-class students understand precarity wealthy ones theorize.
+   Multiple standpoints improve collective knowledge.
+
+3. INJUSTICE IS SYSTEMIC, SO SOLUTIONS MUST BE TOO
+   Can't just "be less biased" individually. Must redesign:
+   • Credibility criteria (testimonial justice)
+   • Conceptual vocabulary (hermeneutical justice)
+   • Evidence systems (pluralism)
+   • Accountability mechanisms (repair)
+
+4. MATCH INTERVENTION TO LEVEL
+   💎 Capacity suppression → Context redesign
+   ⚙️ Capability gap → Clear specifications
+   🏗️ Constructor failure → Institutionalization
+   🔄 Meta-Constructor absence → Learning systems
+
+5. MATERIAL FOLLOW-THROUGH IS ESSENTIAL
+   Recognition without remedy is extraction.
+   Must translate to: resources, time, authority, structural change.
+
+═══════════════════════════════════════════════════════
+VERIFICATION
+═══════════════════════════════════════════════════════
+
+This certificate was auto-generated and cannot be modified.
+Session ID: ${sessionData.sessionId}
+Generated: ${new Date().toLocaleString()}
+
+For Instructor Use:
+  Student Status: ${passed ? 'PASSED' : 'INCOMPLETE'}
+  Overall Mastery: ${getMasteryLabel(masteryLevel)}
+  Recommendatio for Advanced Work: ${masteryLevel === 'mastered' ? 'YES' : masteryLevel === 'proficient' ? 'YES' : 'REVIEW FIRST'}
+
+SIGNATURE OF COMPLETION:
+This certifies that ${studentInfo.name} has completed the
+Epistemic Justice Toolkit and demonstrated ${passed ? 'proficiency' : 'participation'}
+in applied critical thinking for fair knowledge practices.
+
+═══════════════════════════════════════════════════════
+
+"Justice requires not just individual virtue but systems that make
+justice reliable—constructors that persist and meta-constructors
+that learn from mistakes and adapt."
+
+═══════════════════════════════════════════════════════
+`;
+            };
+
+            const downloadCertificate = () => {
+                const cert = generateCertificate();
+                const blob = new Blob([cert], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Epistemic_Justice_Certificate_${studentInfo.name.replace(/\s+/g, '_')}.txt`;
+                a.click();
+            };
+
+            const copyToClipboard = () => {
+                const cert = generateCertificate();
+                navigator.clipboard.writeText(cert);
+                alert('Certificate copied to clipboard!');
+            };
+
+            const passed = finalResults.percentage >= 75;
+            const masteryLevel = calculateMastery(finalResults.percentage);
+
+            return (
+                <div className="space-y-6">
+                    <div className={`bg-white rounded-lg shadow-lg p-8 border-2 ${
+                        passed ? 'border-green-500' : 'border-yellow-500'
+                    }`}>
+                        <div className="text-center mb-8">
+                            <div className="text-6xl mb-4">{passed ? '🎉' : '📚'}</div>
+                            <h2 className="text-4xl font-bold text-gray-900 mb-2">
+                                {passed ? 'Congratulations!' : 'Assessment Complete'}
+                            </h2>
+                            <p className="text-xl text-gray-700 mb-4">
+                                {passed 
+                                    ? "You've mastered the Epistemic Justice Toolkit!"
+                                    : "Please review and try again to achieve 75%"}
+                            </p>
+                            <div className="text-5xl font-bold text-purple-700">
+                                {finalResults.percentage}%
+                            </div>
+                            <p className="text-lg text-gray-600 mt-2">
+                                {getMasteryLabel(masteryLevel)}
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4 mb-8">
+                            <div className="bg-purple-50 p-4 rounded-lg text-center">
+                                <div className="text-sm text-gray-600">Final Assessment</div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {finalResults.correct}/{finalResults.total}
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-lg text-center">
+                                <div className="text-sm text-gray-600">Time Invested</div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {Object.values(sectionProgress).reduce((sum, s) => {
+                                        if (!s.startTime || !s.endTime) return sum;
+                                        return sum + Math.round((new Date(s.endTime) - new Date(s.startTime)) / 60000);
+                                    }, 0)} min
+                                </div>
+                            </div>
+                            <div className="bg-green-50 p-4 rounded-lg text-center">
+                                <div className="text-sm text-gray-600">Design Exercise</div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {designExercise?.completed ? '✓ Done' : '○ Pending'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                            <h3 className="font-semibold text-gray-900 mb-3">Your Certificate Includes:</h3>
+                            <ul className="space-y-2 text-gray-700 text-sm">
+                                <li>✓ Complete performance summary with verification</li>
+                                <li>✓ Practice scores for each concept area</li>
+                                <li>✓ Design exercise analysis</li>
+                                <li>✓ Section-by-section breakdown</li>
+                                <li>✓ Learning objectives achieved</li>
+                                <li>✓ Framework mastery demonstration</li>
+                                <li>✓ Personalized next steps</li>
+                                <li>✓ Key takeaways and applications</li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-3">
+                            <button
+                                onClick={downloadCertificate}
+                                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center"
+                            >
+                                <span className="mr-2">📄</span> Download Completion Certificate
+                            </button>
+                            <button
+                                onClick={copyToClipboard}
+                                className="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center"
+                            >
+                                <span className="mr-2">📋</span> Copy to Clipboard
+                            </button>
+                        </div>
+                    </div>
+
+                    {!passed && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
+                            <h3 className="font-semibold text-yellow-900 mb-2">Next Steps for Improvement</h3>
+                            <p className="text-gray-700 mb-4">
+                                Score: {finalResults.percentage}% (need 75% to pass)
+                            </p>
+                            <p className="text-gray-700 mb-4">Review these areas and try again:</p>
+                            <ul className="space-y-2 text-gray-700 text-sm">
+                                <li>• Revisit sections where practice scores were below 80%</li>
+                                <li>• Study ABCD and Four-Levels connections carefully</li>
+                                <li>• Review integration scenarios showing multi-level analysis</li>
+                                <li>• Complete design exercise more thoroughly</li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             );
         }
